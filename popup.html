@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,27 +15,27 @@
     </div>
 
     <div class="quick-actions">
-      <button class="quick-btn" id="settingsBtn">⚙️ Configurações</button>
-      <button class="quick-btn" id="historyBtn">📚 Histórico</button>
+      <button class="quick-btn" id="settingsBtn">⚙️ Settings</button>
+      <button class="quick-btn" id="historyBtn">📚 History</button>
       <button class="quick-btn" id="autoModeToggle">🤖 Auto: OFF</button>
     </div>
 
     <div class="controls">
-      <button id="scanBtn" class="scan-button">Escanear Página</button>
+      <button id="scanBtn" class="scan-button">Scan Page</button>
       <button id="deepScanBtn" class="scan-button deep-scan-button">🕷️ Deep Scan (Depth 10)</button>
       <div class="loading" id="loading" style="display: none;">
         <div class="spinner"></div>
-        <span id="loadingText">Analisando...</span>
+        <span id="loadingText">Analyzing...</span>
       </div>
     </div>
 
     <div class="stats" id="stats" style="display: none;">
       <div class="stat-item">
-        <span class="stat-label">Scripts Analisados:</span>
+        <span class="stat-label">Scripts Analyzed:</span>
         <span class="stat-value" id="scriptsCount">0</span>
       </div>
       <div class="stat-item">
-        <span class="stat-label">Tokens Encontrados:</span>
+        <span class="stat-label">Tokens Found:</span>
         <span class="stat-value" id="tokensCount">0</span>
       </div>
     </div>
@@ -43,8 +43,8 @@
     <div class="results" id="results"></div>
 
     <div class="footer">
-      <p>Detecta API keys, tokens JWT, secrets e credenciais hardcoded</p>
-      <p style="font-size: 10px; margin-top: 5px;">v2.0.0 - Modo Automático + Discord Webhook</p>
+      <p>Detects hardcoded API keys, JWT tokens, secrets and credentials</p>
+      <p style="font-size: 10px; margin-top: 5px;">v2.0.0 - Automatic Mode + Discord Webhook</p>
     </div>
   </div>
 

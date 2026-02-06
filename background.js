@@ -1,9 +1,9 @@
 // Background Service Worker - OFJAAAH Hardcoded Token Detector
-// Gerencia notificações, webhooks, e armazenamento
+// Manages notifications, webhooks, and storage
 
-console.log('🔍 OFJAAAH Token Detector - Background Service Worker iniciado');
+console.log('🔍 OFJAAAH Token Detector - Background Service Worker started');
 
-// Estado global do Deep Scan
+// Global Deep Scan state
 let deepScanState = {
   isRunning: false,
   tabId: null,
@@ -16,7 +16,7 @@ let deepScanState = {
   results: null
 };
 
-// Inicializar configurações padrão
+// Initialize default settings
 chrome.runtime.onInstalled.addListener(async () => {
   const defaultSettings = {
     autoScanEnabled: false,
@@ -24,11 +24,11 @@ chrome.runtime.onInstalled.addListener(async () => {
     discordWebhookEnabled: false,
     discordWebhookUrl: '',
     saveHistory: true,
-    scanDelay: 5000, // 5 segundos após carregar (aumentado para não travar o site)
+    scanDelay: 5000, // 5 seconds after loading (increased to avoid freezing the site)
     minTokenLength: 15,
 
-    // Filtro de domínios
-    skipSocialMediaScan: true, // Pular redes sociais por padrão
+    // Domain filter
+    skipSocialMediaScan: true, // Skip social media by default
 
     // Proxy settings
     proxyEnabled: false,
@@ -36,78 +36,78 @@ chrome.runtime.onInstalled.addListener(async () => {
     proxyPort: 8080
   };
 
-  // Verificar se já existe configuração
+  // Check if settings already exist
   const { settings } = await chrome.storage.local.get('settings');
   if (!settings) {
     await chrome.storage.local.set({ settings: defaultSettings });
-    console.log('⚙️ Configurações padrão criadas');
+    console.log('⚙️ Default settings created');
   }
 
-  // Inicializar histórico se não existir
+  // Initialize history if it doesn't exist
   const { history } = await chrome.storage.local.get('history');
   if (!history) {
     await chrome.storage.local.set({ history: [] });
-    console.log('📚 Histórico inicializado');
+    console.log('📚 History initialized');
   }
 });
 
-// Listener unificado para todas as mensagens
+// Unified listener for all messages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  // Mensagens do content script
+  // Messages from content script
   if (request.action === 'tokensFound') {
     if (sender.tab) {
       handleTokensFound(request.data, sender.tab);
     } else {
-      console.warn('⚠️ tokensFound recebido sem tab associado');
+      console.warn('⚠️ tokensFound received without associated tab');
     }
     sendResponse({ status: 'received' });
   } else if (request.action === 'manualScan') {
     if (sender.tab) {
       handleManualScan(request.data, sender.tab);
     } else {
-      console.warn('⚠️ manualScan recebido sem tab associado');
+      console.warn('⚠️ manualScan received without associated tab');
     }
     sendResponse({ status: 'received' });
   } else if (request.action === 'deepScanStarted') {
-    // Deep scan iniciado
+    // Deep scan started
     deepScanState.isRunning = true;
     deepScanState.tabId = sender.tab?.id || null;
     deepScanState.startTime = Date.now();
     deepScanState.progress = request.progress || { pagesVisited: 0, scriptsAnalyzed: 0, tokensFound: 0 };
-    console.log('🕷️ Deep Scan iniciado e registrado no background');
+    console.log('🕷️ Deep Scan started and registered in background');
     sendResponse({ status: 'registered' });
   } else if (request.action === 'deepScanProgress') {
-    // Atualizar progresso do deep scan
+    // Update deep scan progress
     if (deepScanState.isRunning) {
       deepScanState.progress = request.progress;
-      console.log('📊 Progresso Deep Scan:', request.progress);
+      console.log('📊 Deep Scan progress:', request.progress);
     }
     sendResponse({ status: 'updated' });
   } else if (request.action === 'deepScanCompleted') {
-    // Deep scan completo
+    // Deep scan complete
     deepScanState.isRunning = false;
     deepScanState.results = request.data;
-    console.log('✅ Deep Scan completo e salvo no background');
+    console.log('✅ Deep Scan complete and saved in background');
 
-    // Salvar no histórico
+    // Save to history
     if (sender.tab) {
       handleManualScan(request.data, sender.tab);
     }
     sendResponse({ status: 'completed' });
   } else if (request.action === 'getDeepScanState') {
-    // Retornar estado atual do deep scan
+    // Return current deep scan state
     sendResponse({
       status: 'success',
       state: deepScanState
     });
   } else if (request.action === 'markTokenViewed') {
-    // Marcar token como visualizado
+    // Mark token as viewed
     markTokenAsViewed(request.tokenId, request.tokenValue).then(result => {
       sendResponse(result);
     });
     return true;
   }
-  // Ações de exportação e estatísticas
+  // Export and statistics actions
   else if (request.action === 'exportHistory') {
     exportHistory().then(sendResponse);
     return true;
@@ -127,101 +127,101 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-// Processar tokens encontrados
+// Process found tokens
 async function handleTokensFound(foundTokens, tab) {
   if (!tab) {
-    console.error('❌ handleTokensFound: tab é undefined');
+    console.error('❌ handleTokensFound: tab is undefined');
     return;
   }
 
   const { settings } = await chrome.storage.local.get('settings');
   if (!settings) {
-    console.error('❌ handleTokensFound: settings não encontradas');
+    console.error('❌ handleTokensFound: settings not found');
     return;
   }
 
-  // Validar estrutura de foundTokens
+  // Validate foundTokens structure
   if (!foundTokens || !foundTokens.tokens || !Array.isArray(foundTokens.tokens)) {
-    console.error('❌ Estrutura de foundTokens inválida:', foundTokens);
+    console.error('❌ Invalid foundTokens structure:', foundTokens);
     return;
   }
 
   if (foundTokens.tokens.length === 0) {
-    console.log('✅ Nenhum token encontrado em:', tab.url);
+    console.log('✅ No tokens found in:', tab.url);
     return;
   }
 
-  console.log(`🔍 ${foundTokens.tokens.length} tokens encontrados em:`, tab.url);
+  console.log(`🔍 ${foundTokens.tokens.length} tokens found in:`, tab.url);
 
-  // Verificar se há tokens válidos
+  // Check for valid tokens
   const validTokens = foundTokens.tokens.filter(t => t.validation?.valid === true);
   const hasValidTokens = validTokens.length > 0;
 
   if (hasValidTokens) {
-    console.log(`⚠️ ALERTA CRÍTICO: ${validTokens.length} token(s) válido(s) encontrado(s)!`);
+    console.log(`⚠️ CRITICAL ALERT: ${validTokens.length} valid token(s) found!`);
 
-    // Badge de alerta para tokens válidos
+    // Alert badge for valid tokens
     chrome.action.setBadgeText({ text: '⚠️' });
     chrome.action.setBadgeBackgroundColor({ color: '#FF0000' });
 
-    // Notificação crítica
+    // Critical notification
     if (settings.notificationsEnabled) {
       await sendCriticalNotification(validTokens.length, foundTokens.tokens.length, tab);
     }
   } else {
-    // Enviar notificação normal
+    // Send normal notification
     if (settings.notificationsEnabled) {
       await sendNotification(foundTokens.tokens.length, tab);
     }
   }
 
-  // Salvar no histórico
+  // Save to history
   if (settings.saveHistory) {
     await saveToHistory(foundTokens, tab);
   }
 
-  // Enviar para Discord
+  // Send to Discord
   if (settings.discordWebhookEnabled && settings.discordWebhookUrl) {
     await sendToDiscord(foundTokens, tab, settings.discordWebhookUrl);
   }
 }
 
-// Processar scan manual
+// Process manual scan
 async function handleManualScan(foundTokens, tab) {
   if (!tab) {
-    console.error('❌ handleManualScan: tab é undefined');
+    console.error('❌ handleManualScan: tab is undefined');
     return;
   }
 
   const { settings } = await chrome.storage.local.get('settings');
   if (!settings) {
-    console.error('❌ handleManualScan: settings não encontradas');
+    console.error('❌ handleManualScan: settings not found');
     return;
   }
 
-  // Validar estrutura de foundTokens
+  // Validate foundTokens structure
   if (!foundTokens || !foundTokens.tokens || !Array.isArray(foundTokens.tokens)) {
-    console.error('❌ Estrutura de foundTokens inválida:', foundTokens);
+    console.error('❌ Invalid foundTokens structure:', foundTokens);
     return;
   }
 
-  console.log(`📋 Scan manual: ${foundTokens.tokens.length} tokens em:`, tab.url);
+  console.log(`📋 Manual scan: ${foundTokens.tokens.length} tokens in:`, tab.url);
 
-  // Salvar no histórico
+  // Save to history
   if (settings.saveHistory) {
     await saveToHistory(foundTokens, tab);
   }
 
-  // Enviar para Discord se configurado
+  // Send to Discord if configured
   if (settings.discordWebhookEnabled && settings.discordWebhookUrl) {
     await sendToDiscord(foundTokens, tab, settings.discordWebhookUrl);
   }
 }
 
-// Salvar tokens no histórico
+// Save tokens to history
 async function saveToHistory(foundTokens, tab) {
   if (!tab) {
-    console.error('❌ saveToHistory: tab é undefined');
+    console.error('❌ saveToHistory: tab is undefined');
     return;
   }
 
@@ -231,133 +231,133 @@ async function saveToHistory(foundTokens, tab) {
     const entry = {
       id: Date.now().toString(),
       timestamp: new Date().toISOString(),
-      url: tab.url || 'URL desconhecida',
-      title: tab.title || 'Título desconhecido',
+      url: tab.url || 'Unknown URL',
+      title: tab.title || 'Unknown title',
       favicon: tab.favIconUrl || '',
       tokensCount: foundTokens.tokens?.length || 0,
       tokens: foundTokens.tokens || [],
       scriptsAnalyzed: foundTokens.scriptsAnalyzed || 0
     };
 
-    // Adicionar no início do array (mais recente primeiro)
+    // Add at the beginning of array (most recent first)
     history.unshift(entry);
 
-    // Limitar histórico a 500 entradas
+    // Limit history to 500 entries
     const limitedHistory = history.slice(0, 500);
 
     await chrome.storage.local.set({ history: limitedHistory });
-    console.log('💾 Tokens salvos no histórico');
+    console.log('💾 Tokens saved to history');
   } catch (error) {
-    console.error('❌ Erro ao salvar histórico:', error);
+    console.error('❌ Error saving history:', error);
   }
 }
 
-// Enviar notificação
+// Send notification
 async function sendNotification(tokenCount, tab) {
   if (!tab) {
-    console.error('❌ sendNotification: tab é undefined');
+    console.error('❌ sendNotification: tab is undefined');
     return;
   }
 
   try {
     const notificationId = `tokens-${Date.now()}`;
-    const tabInfo = tab.title || tab.url || 'Site desconhecido';
+    const tabInfo = tab.title || tab.url || 'Unknown site';
 
     await chrome.notifications.create(notificationId, {
       type: 'basic',
       iconUrl: 'icons/icon128.png',
-      title: '🔍 Tokens Hardcoded Detectados!',
-      message: `Encontrados ${tokenCount} token(s) em:\n${truncateText(tabInfo, 60)}`,
+      title: '🔍 Hardcoded Tokens Detected!',
+      message: `Found ${tokenCount} token(s) in:\n${truncateText(tabInfo, 60)}`,
       priority: 2,
       requireInteraction: true,
       buttons: [
-        { title: '👁️ Ver Detalhes' },
-        { title: '📋 Ver Histórico' }
+        { title: '👁️ View Details' },
+        { title: '📋 View History' }
       ]
     });
 
-    console.log('🔔 Notificação enviada');
+    console.log('🔔 Notification sent');
   } catch (error) {
-    console.error('❌ Erro ao enviar notificação:', error);
+    console.error('❌ Error sending notification:', error);
   }
 }
 
-// Enviar notificação crítica para tokens válidos
+// Send critical notification for valid tokens
 async function sendCriticalNotification(validCount, totalCount, tab) {
   if (!tab) {
-    console.error('❌ sendCriticalNotification: tab é undefined');
+    console.error('❌ sendCriticalNotification: tab is undefined');
     return;
   }
 
   try {
     const notificationId = `critical-${Date.now()}`;
-    const tabInfo = tab.title || tab.url || 'Site desconhecido';
+    const tabInfo = tab.title || tab.url || 'Unknown site';
 
     await chrome.notifications.create(notificationId, {
       type: 'basic',
       iconUrl: 'icons/icon128.png',
-      title: '🚨 ALERTA CRÍTICO: Tokens Válidos Detectados!',
-      message: `⚠️ ${validCount} token(s) VÁLIDO(S) de ${totalCount} encontrados em:\n${truncateText(tabInfo, 50)}\n\nAÇÃO NECESSÁRIA IMEDIATA!`,
+      title: '🚨 CRITICAL ALERT: Valid Tokens Detected!',
+      message: `⚠️ ${validCount} VALID token(s) of ${totalCount} found in:\n${truncateText(tabInfo, 50)}\n\nIMMEDIATE ACTION REQUIRED!`,
       priority: 2,
       requireInteraction: true,
       buttons: [
-        { title: '🚨 Ver Agora' },
-        { title: '📋 Ver Histórico' }
+        { title: '🚨 View Now' },
+        { title: '📋 View History' }
       ]
     });
 
-    console.log('🚨 Notificação crítica enviada');
+    console.log('🚨 Critical notification sent');
   } catch (error) {
-    console.error('❌ Erro ao enviar notificação crítica:', error);
+    console.error('❌ Error sending critical notification:', error);
   }
 }
 
-// Listener para cliques nas notificações
+// Listener for notification clicks
 chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
   if (buttonIndex === 0) {
-    // Ver Detalhes - abrir popup
+    // View Details - open popup
     const windows = await chrome.windows.getAll();
     if (windows.length > 0) {
       chrome.action.openPopup();
     }
   } else if (buttonIndex === 1) {
-    // Ver Histórico - abrir página de histórico
+    // View History - open history page
     chrome.tabs.create({ url: 'history.html' });
   }
   chrome.notifications.clear(notificationId);
 });
 
-// Enviar para Discord Webhook
+// Send to Discord Webhook
 async function sendToDiscord(foundTokens, tab, webhookUrl) {
   if (!tab) {
-    console.error('❌ sendToDiscord: tab é undefined');
+    console.error('❌ sendToDiscord: tab is undefined');
     return;
   }
 
   try {
-    // Validar estrutura de foundTokens
+    // Validate foundTokens structure
     if (!foundTokens || !foundTokens.tokens || !Array.isArray(foundTokens.tokens)) {
-      console.error('❌ sendToDiscord: Estrutura de foundTokens inválida:', foundTokens);
+      console.error('❌ sendToDiscord: Invalid foundTokens structure:', foundTokens);
       return;
     }
 
-    const tabUrl = tab.url || 'URL desconhecida';
-    const tabTitle = tab.title || 'Sem título';
+    const tabUrl = tab.url || 'Unknown URL';
+    const tabTitle = tab.title || 'No title';
 
-    // Contar tokens validados
+    // Count validated tokens
     const validTokens = foundTokens.tokens.filter(t => t.validation?.valid === true);
     const invalidTokens = foundTokens.tokens.filter(t => t.validation?.valid === false);
     const unvalidatedTokens = foundTokens.tokens.filter(t => t.validation?.valid === null || t.validation?.valid === undefined);
 
-    // Definir cor do embed baseado na severidade
-    let embedColor = 0xF5576C; // Rosa padrão
+    // Define embed color based on severity
+    let embedColor = 0xF5576C; // Default pink
     if (validTokens.length > 0) {
-      embedColor = 0xFF0000; // Vermelho para tokens válidos
+      embedColor = 0xFF0000; // Red for valid tokens
     }
 
     const embed = {
-      title: validTokens.length > 0 ? '🚨 ALERTA CRÍTICO: Tokens Válidos Detectados!' : '🔍 Tokens Hardcoded Detectados by OFJAAAH',
-      description: `**${foundTokens.tokens.length}** token(s) encontrado(s)${validTokens.length > 0 ? `\n\n⚠️ **${validTokens.length} TOKEN(S) VÁLIDO(S) E ATIVO(S)!**` : ''}`,
+      title: validTokens.length > 0 ? '🚨 CRITICAL ALERT: Valid Tokens Detected!' : '🔍 Hardcoded Tokens Detected by OFJAAAH',
+      description: `**${foundTokens.tokens.length}** token(s) found${validTokens.length > 0 ? `\n\n⚠️ **${validTokens.length} VALID AND ACTIVE TOKEN(S)!**` : ''}`,
       color: embedColor,
       url: tabUrl,
       fields: [
@@ -372,12 +372,12 @@ async function sendToDiscord(foundTokens, tab, webhookUrl) {
           inline: false
         },
         {
-          name: '📄 Scripts Analisados',
+          name: '📄 Scripts Analyzed',
           value: (foundTokens.scriptsAnalyzed || 0).toString(),
           inline: true
         },
         {
-          name: '🔑 Tokens Encontrados',
+          name: '🔑 Tokens Found',
           value: foundTokens.tokens.length.toString(),
           inline: true
         }
@@ -389,11 +389,11 @@ async function sendToDiscord(foundTokens, tab, webhookUrl) {
       }
     };
 
-    // Adicionar resumo de validação se houver tokens validados
+    // Add validation summary if there are validated tokens
     if (validTokens.length > 0 || invalidTokens.length > 0 || unvalidatedTokens.length > 0) {
       embed.fields.push({
-        name: '🔐 Status de Validação',
-        value: `✅ Válidos: **${validTokens.length}**\n❌ Inválidos: **${invalidTokens.length}**\n⚠️ Não validados: **${unvalidatedTokens.length}**`,
+        name: '🔐 Validation Status',
+        value: `✅ Valid: **${validTokens.length}**\n❌ Invalid: **${invalidTokens.length}**\n⚠️ Not validated: **${unvalidatedTokens.length}**`,
         inline: false
       });
     }
@@ -404,20 +404,20 @@ async function sendToDiscord(foundTokens, tab, webhookUrl) {
       const tokenValue = truncateText(token.value, 100);
       const scriptUrl = truncateText(token.scriptUrl, 200);
 
-      // Determinar status de validação
+      // Determine validation status
       let validationIcon = '⚠️';
       let validationStatus = 'Não validado';
 
       if (token.validation) {
         if (token.validation.valid === true) {
           validationIcon = '✅';
-          validationStatus = `**VÁLIDO**: ${token.validation.status}`;
+          validationStatus = `**VALID**: ${token.validation.status}`;
           if (token.validation.severity) {
             validationStatus += ` (${token.validation.severity})`;
           }
         } else if (token.validation.valid === false) {
           validationIcon = '❌';
-          validationStatus = `Inválido: ${token.validation.status}`;
+          validationStatus = `Invalid: ${token.validation.status}`;
         } else {
           validationIcon = '⚠️';
           validationStatus = token.validation.status || 'Não foi possível validar';
@@ -435,7 +435,7 @@ async function sendToDiscord(foundTokens, tab, webhookUrl) {
     if (foundTokens.tokens.length > 10) {
       embed.fields.push({
         name: '⚠️ Aviso',
-        value: `Mais ${foundTokens.tokens.length - 10} token(s) encontrado(s). Veja o histórico completo na extensão.`,
+        value: `Plus ${foundTokens.tokens.length - 10} token(s) found. See complete history in the extension.`,
         inline: false
       });
     }
@@ -455,16 +455,16 @@ async function sendToDiscord(foundTokens, tab, webhookUrl) {
     });
 
     if (response.ok) {
-      console.log('✅ Tokens enviados para Discord');
+      console.log('✅ Tokens sent to Discord');
     } else {
-      console.error('❌ Erro ao enviar para Discord:', response.status, response.statusText);
+      console.error('❌ Error sending to Discord:', response.status, response.statusText);
     }
   } catch (error) {
-    console.error('❌ Erro ao enviar para Discord:', error);
+    console.error('❌ Error sending to Discord:', error);
   }
 }
 
-// Funções auxiliares
+// Helper functions
 function truncateText(text, maxLength) {
   if (!text) return '';
   if (text.length <= maxLength) return text;
@@ -494,7 +494,7 @@ function getTypeEmoji(type) {
   return emojis[type] || '⚠️';
 }
 
-// Inicializar estado da extensão (Badge e Proxy) após settings estarem prontas
+// Initialize extension state (Badge and Proxy) after settings are ready
 async function initializeExtensionState() {
   try {
     const { settings } = await chrome.storage.local.get('settings');
@@ -517,14 +517,14 @@ async function initializeExtensionState() {
 
     console.log('✅ Estado da extensão inicializado');
   } catch (error) {
-    console.error('❌ Erro ao inicializar estado da extensão:', error);
+    console.error('❌ Error initializing extension state:', error);
   }
 }
 
-// Chamar inicialização com delay para garantir que onInstalled termine
+// Call initialization with delay to ensure onInstalled completes
 setTimeout(initializeExtensionState, 100);
 
-// Listener para mudanças nas configurações
+// Listener for settings changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'local' && changes.settings && changes.settings.newValue) {
     const newSettings = changes.settings.newValue;
@@ -535,7 +535,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
       chrome.action.setBadgeText({ text: '' });
     }
 
-    // Atualizar configuração de proxy
+    // Update proxy configuration
     const oldSettings = changes.settings.oldValue || {};
     if (newSettings.proxyEnabled !== oldSettings.proxyEnabled ||
         newSettings.proxyHost !== oldSettings.proxyHost ||
@@ -593,14 +593,14 @@ async function configureProxy(settings) {
       }
     }
   } catch (error) {
-    console.error('❌ Erro ao configurar proxy:', error);
+    console.error('❌ Error configuring proxy:', error);
   }
 }
 
-// Removido: inicialização movida para initializeExtensionState()
+// Removido: initialization moved to initializeExtensionState()
 // Removido: listener duplicado mesclado com o principal
 
-// Exportar histórico
+// Export history
 async function exportHistory() {
   try {
     const { history = [] } = await chrome.storage.local.get('history');
@@ -614,7 +614,7 @@ async function exportHistory() {
   }
 }
 
-// Limpar histórico
+// Clear history
 async function clearHistory() {
   try {
     await chrome.storage.local.set({ history: [] });
@@ -653,13 +653,13 @@ async function getStats() {
   }
 }
 
-// Marcar token como visualizado no histórico
+// Mark token as viewed in history
 async function markTokenAsViewed(tokenId, tokenValue) {
   try {
     const { history = [] } = await chrome.storage.local.get('history');
     let found = false;
 
-    // Procurar e atualizar o token em todas as entradas do histórico
+    // Search and update the token in all history entries
     for (const entry of history) {
       for (const token of entry.tokens) {
         if ((token.id && token.id === tokenId) || token.value === tokenValue) {
@@ -672,14 +672,14 @@ async function markTokenAsViewed(tokenId, tokenValue) {
 
     if (found) {
       await chrome.storage.local.set({ history });
-      console.log('💾 Token marcado como visualizado no histórico');
+      console.log('💾 Token marked as viewed in history');
       return { success: true, message: 'Token marcado como visualizado' };
     } else {
-      console.warn('⚠️ Token não encontrado no histórico');
-      return { success: false, message: 'Token não encontrado' };
+      console.warn('⚠️ Token not found in history');
+      return { success: false, message: 'Token not found' };
     }
   } catch (error) {
-    console.error('❌ Erro ao marcar token como visualizado:', error);
+    console.error('❌ Error marking token as viewed:', error);
     return { success: false, error: error.message };
   }
 }
@@ -753,7 +753,7 @@ async function exportForPentest() {
   }
 }
 
-// Exportar template Nuclei para endpoints encontrados
+// Export Nuclei template for found endpoints
 async function exportNucleiTemplate() {
   try {
     const { history = [] } = await chrome.storage.local.get('history');

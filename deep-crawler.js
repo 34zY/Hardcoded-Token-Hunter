@@ -1,5 +1,5 @@
 // Deep Crawler - OFJAAAH Hardcoded Token Detector
-// Crawler profundo para análise de JavaScript com depth 10
+// Deep crawler for JavaScript analysis with depth 10
 
 class DeepCrawler {
   constructor(maxDepth = 10) {
@@ -31,7 +31,7 @@ class DeepCrawler {
         const scripts = await this.extractScriptsFromPage(url, depth);
         allScripts.push(...scripts);
 
-        // Se não atingiu profundidade máxima, buscar mais links
+        // If max depth not reached, fetch more links
         if (depth < this.maxDepth) {
           const links = await this.extractLinks(url);
           for (const link of links) {
@@ -48,26 +48,26 @@ class DeepCrawler {
         }
       }
 
-      // Delay para não sobrecarregar
+      // Delay to avoid overload
       await this.sleep(100);
     }
 
-    console.log(`✅ Crawler completo: ${allScripts.length} scripts encontrados em ${this.visitedUrls.size} páginas`);
+    console.log(`✅ Crawler completo: ${allScripts.length} scripts found em ${this.visitedUrls.size} páginas`);
     return allScripts;
   }
 
-  // Extrair scripts de uma página
+  // Extract scripts from a page
   async extractScriptsFromPage(url, depth) {
     const scripts = [];
 
     try {
       let htmlContent;
 
-      // Se for a página atual, usar DOM
+      // If it's the current page, use DOM
       if (url === window.location.href) {
         htmlContent = document.documentElement.outerHTML;
       } else {
-        // Buscar página externa
+        // Fetch external page
         const response = await fetch(url);
         htmlContent = await response.text();
       }
@@ -202,7 +202,7 @@ class DeepCrawler {
       const response = await fetch(sourceMapUrl);
       const sourceMap = await response.json();
 
-      // Source maps contêm código original
+      // Source maps contain original code
       if (sourceMap.sourcesContent) {
         for (let i = 0; i < sourceMap.sourcesContent.length; i++) {
           const content = sourceMap.sourcesContent[i];
@@ -221,7 +221,7 @@ class DeepCrawler {
       }
     } catch (error) {
       // Silenciosamente ignorar erros ao buscar source maps
-      // Source maps geralmente causam erros CORS e não são críticos
+      // Source maps usually cause CORS errors and are not critical
       if (!error.message.includes('CORS') &&
           !error.message.includes('Failed to fetch') &&
           !error.message.includes('NetworkError') &&
@@ -231,7 +231,7 @@ class DeepCrawler {
     }
   }
 
-  // Extrair links de uma página
+  // Extract links from a page
   async extractLinks(url) {
     const links = [];
 
@@ -265,7 +265,7 @@ class DeepCrawler {
     }
   }
 
-  // Verificar se é o mesmo domínio
+  // Check if it's the same domain
   isSameDomain(url1, url2) {
     try {
       const domain1 = new URL(url1).hostname;

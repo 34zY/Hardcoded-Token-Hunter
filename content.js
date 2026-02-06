@@ -1,21 +1,21 @@
 // Content Script - OFJAAAH Hardcoded Token Detector
-// Scanner automático e manual de tokens hardcoded
+// Automatic and manual hardcoded token scanner
 
-// Prevenir múltiplas execuções do content script
+// Prevent multiple executions of content script
 if (window.hardcodedTokenDetectorLoaded) {
-  console.log('🔍 Hardcoded Token Detector já carregado, ignorando execução duplicada');
+  console.log('🔍 Hardcoded Token Detector already loaded, ignoring duplicate execution');
 } else {
   window.hardcodedTokenDetectorLoaded = true;
-  console.log('🔍 Hardcoded Token Detector by OFJAAAH - Content Script carregado');
+  console.log('🔍 Hardcoded Token Detector by OFJAAAH - Content Script loaded');
 
-// Importar validador, crawler e bucket detector
+// Import validator, crawler and bucket detector
 let validatorModule = null;
 let DeepCrawler = null;
 let BucketTakeoverDetector = null;
 let modulesLoaded = false;
 let modulesLoadingPromise = null;
 
-// Função para garantir que os módulos estão carregados
+// Function to ensure modules are loaded
 async function ensureModulesLoaded() {
   if (modulesLoaded) {
     return true;
@@ -28,35 +28,35 @@ async function ensureModulesLoaded() {
 
   modulesLoadingPromise = (async () => {
     try {
-      // Carregar validador usando import dinâmico
+      // Load validator using dynamic import
       const validatorUrl = chrome.runtime.getURL('validator.js');
       const validatorImport = await import(validatorUrl);
       validatorModule = validatorImport;
-      console.log('✅ Módulo de validação carregado');
+      console.log('✅ Validation module loaded');
 
-      // Carregar deep crawler usando import dinâmico
+      // Load deep crawler using dynamic import
       try {
         const crawlerUrl = chrome.runtime.getURL('deep-crawler.js');
         const crawlerModule = await import(crawlerUrl);
 
-        // Tentar obter a classe do módulo de diferentes formas
+        // Try to get the module class in different ways
         DeepCrawler = crawlerModule.default || crawlerModule.DeepCrawler;
 
-        // Se ainda não estiver disponível, criar uma referência global
+        // If still not available, create a global reference
         if (!DeepCrawler) {
-          // Injetar script no contexto da página para ter acesso ao window
+          // Inject script in page context to access window
           await new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = crawlerUrl;
             script.onload = () => {
-              // Aguardar um momento para o script ser executado
+              // Wait a moment for the script to execute
               setTimeout(() => {
                 if (typeof window.DeepCrawler !== 'undefined') {
                   DeepCrawler = window.DeepCrawler;
                   document.head.removeChild(script);
                   resolve();
                 } else {
-                  reject(new Error('DeepCrawler não encontrado no window'));
+                  reject(new Error('DeepCrawler not found in window'));
                 }
               }, 100);
             };
@@ -66,37 +66,37 @@ async function ensureModulesLoaded() {
         }
 
         if (DeepCrawler) {
-          console.log('✅ Deep Crawler carregado');
+          console.log('✅ Deep Crawler loaded');
         } else {
-          console.warn('⚠️ Deep Crawler não encontrado');
+          console.warn('⚠️ Deep Crawler not found');
         }
       } catch (error) {
         console.warn('⚠️ Erro ao carregar Deep Crawler:', error.message);
       }
 
-      // Carregar bucket takeover detector usando import dinâmico
+      // Load bucket takeover detector using dynamic import
       try {
         const bucketUrl = chrome.runtime.getURL('bucket-takeover-detector.js');
         const bucketModule = await import(bucketUrl);
 
-        // Tentar obter a classe do módulo de diferentes formas
+        // Try to get the module class in different ways
         BucketTakeoverDetector = bucketModule.default || bucketModule.BucketTakeoverDetector;
 
-        // Se ainda não estiver disponível, criar uma referência global
+        // If still not available, create a global reference
         if (!BucketTakeoverDetector) {
-          // Injetar script no contexto da página para ter acesso ao window
+          // Inject script in page context to access window
           await new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = bucketUrl;
             script.onload = () => {
-              // Aguardar um momento para o script ser executado
+              // Wait a moment for the script to execute
               setTimeout(() => {
                 if (typeof window.BucketTakeoverDetector !== 'undefined') {
                   BucketTakeoverDetector = window.BucketTakeoverDetector;
                   document.head.removeChild(script);
                   resolve();
                 } else {
-                  reject(new Error('BucketTakeoverDetector não encontrado no window'));
+                  reject(new Error('BucketTakeoverDetector not found in window'));
                 }
               }, 100);
             };
@@ -106,15 +106,15 @@ async function ensureModulesLoaded() {
         }
 
         if (BucketTakeoverDetector) {
-          console.log('✅ Bucket Takeover Detector carregado');
+          console.log('✅ Bucket Takeover Detector loaded');
         } else {
-          console.warn('⚠️ Bucket Takeover Detector não encontrado');
+          console.warn('⚠️ Bucket Takeover Detector not found');
         }
       } catch (error) {
         console.warn('⚠️ Erro ao carregar Bucket Takeover Detector:', error.message);
       }
 
-      // Marcar como carregado se pelo menos o validador funcionar
+      // Mark as loaded if at least the validator works
       modulesLoaded = !!(validatorModule && (DeepCrawler || BucketTakeoverDetector));
       return modulesLoaded;
     } catch (error) {
@@ -128,14 +128,14 @@ async function ensureModulesLoaded() {
   return modulesLoaded;
 }
 
-// Iniciar carregamento dos módulos imediatamente
+// Start loading modules immediately
 ensureModulesLoaded();
 
 // ========================================
 // FILTRO DE DOMÍNIOS - REDES SOCIAIS E SITES POPULARES
 // ========================================
 const SOCIAL_MEDIA_DOMAINS = [
-  // Redes Sociais Principais
+  // Main Social Networks
   'facebook.com', 'fb.com', 'fbcdn.net', 'facebook.net',
   'instagram.com', 'cdninstagram.com',
   'twitter.com', 'x.com', 't.co', 'twimg.com',
@@ -149,7 +149,7 @@ const SOCIAL_MEDIA_DOMAINS = [
   'telegram.org', 't.me',
   'discord.com', 'discord.gg', 'discordapp.com', 'discordapp.net',
 
-  // Google Services (Analytics, Ads, etc) - Removido google.com e googleapis.com para permitir GCP scan
+  // Google Services (Analytics, Ads, etc) - Removed google.com and googleapis.com to allow GCP scan
   'google-analytics.com', 'googletagmanager.com',
   'doubleclick.net', 'googlesyndication.com', 'googleadservices.com',
   'gstatic.com',
@@ -169,7 +169,7 @@ const SOCIAL_MEDIA_DOMAINS = [
   'intercom.io', 'intercom.com',
   'zendesk.com',
 
-  // CDNs e Serviços de Infraestrutura
+  // CDNs and Infrastructure Services
   'cloudflare.com', 'cloudflareinsights.com', 'cf-assets.com',
   'akamai.net', 'akamaihd.net',
   'fastly.net',
@@ -184,7 +184,7 @@ const SOCIAL_MEDIA_DOMAINS = [
   'criteo.com',
   'rubiconproject.com',
 
-  // Outras Plataformas Comuns
+  // Other Common Platforms
   'medium.com',
   'wordpress.com', 'wp.com',
   'tumblr.com',
@@ -193,7 +193,7 @@ const SOCIAL_MEDIA_DOMAINS = [
   'spotify.com', 'scdn.co',
   'apple.com', 'icloud.com',
 
-  // E-commerce e Shopping (bloquear site, mas permitir buckets)
+  // E-commerce and Shopping (block site, but allow buckets)
   'amazon.com', 'amazon.com.br', 'amazon.co.uk', 'amazon.de', 'amazon.fr',
   'amazon.es', 'amazon.it', 'amazon.ca', 'amazon.co.jp', 'amazon.in',
   'ssl-images-amazon.com', 'media-amazon.com', 'amazonwebservices.com',
@@ -210,7 +210,7 @@ const SOCIAL_MEDIA_DOMAINS = [
 // encontrar referências a buckets S3/GCS no código JavaScript normalmente.
 // ========================================
 
-// Verificar se o domínio atual deve ser ignorado para scan
+// Check if current domain should be skipped for scan
 function shouldSkipDomain(url) {
   try {
     const hostname = new URL(url).hostname.toLowerCase();
@@ -347,7 +347,7 @@ function isFalsePositive(value, context) {
     return true;
   }
 
-  // Verificar se parece com nome de feature/config (padrão comum: palavra_palavra_numero)
+  // Check if it looks like a feature/config name (common pattern: word_word_number)
   if (/^[a-z]+(_[a-z0-9]+){1,5}$/.test(value)) {
     return true;
   }
@@ -399,7 +399,7 @@ function isFalsePositive(value, context) {
     return true;
   }
 
-  // Verificar padrão de camelCase ou snake_case sem números (geralmente são nomes de variáveis)
+  // Check camelCase or snake_case pattern without numbers (usually variable names)
   if (/^[a-z][a-zA-Z]*$/.test(value) || /^[a-z]+(_[a-z]+)+$/.test(value)) {
     return true;
   }
@@ -415,7 +415,7 @@ function isFalsePositive(value, context) {
     return true;
   }
 
-  // Tokens reais raramente são apenas palavras em inglês separadas por underscores
+  // Real tokens are rarely just English words separated by underscores
   // Se todas as partes (separadas por _) são palavras comuns, é falso positivo
   const parts = value.toLowerCase().split('_');
   const commonWords = [
@@ -757,13 +757,13 @@ function isSameDomain(scriptUrl, currentHostname) {
   }
 }
 
-// Verificar configurações e iniciar scan automático
+// Check settings and start automatic scan
 async function initAutoScan() {
   try {
     const { settings } = await chrome.storage.local.get('settings');
 
     // Verificar se deve pular este domínio (filtro de redes sociais)
-    const skipSocialMedia = settings?.skipSocialMediaScan !== false; // Ativo por padrão
+    const skipSocialMedia = settings?.skipSocialMediaScan !== false; // Active by default
     if (skipSocialMedia && shouldSkipDomain(window.location.href)) {
       console.log('⏭️ Scan pulado: domínio está na blacklist de redes sociais/tracking');
       return;
@@ -778,7 +778,7 @@ async function initAutoScan() {
         const results = await scanForTokens(true); // true = modo cirúrgico
 
         if (results.tokens.length > 0) {
-          console.log(`✅ Auto-scan completo: ${results.tokens.length} token(s) encontrado(s)`);
+          console.log(`✅ Auto-scan complete: ${results.tokens.length} token(s) found`);
 
           // DESABILITADO: Validação automática pode travar o site
           // A validação só acontece no SCAN MANUAL
@@ -790,7 +790,7 @@ async function initAutoScan() {
             data: results
           });
         } else {
-          console.log('✅ Auto-scan completo: nenhum token encontrado');
+          console.log('✅ Auto-scan complete: no tokens found');
         }
       }, settings.scanDelay || 3000);
     }
@@ -812,7 +812,7 @@ async function scanForTokens(surgical = true) {
   try {
     // Verificar se deve pular este domínio (scan manual também respeita o filtro se configurado)
     const { settings } = await chrome.storage.local.get('settings');
-    const skipSocialMedia = settings?.skipSocialMediaScan !== false; // Ativo por padrão
+    const skipSocialMedia = settings?.skipSocialMediaScan !== false; // Active by default
 
     if (skipSocialMedia && shouldSkipDomain(window.location.href)) {
       console.log('⏭️ Scan pulado: domínio está na blacklist de redes sociais/tracking');
@@ -820,11 +820,11 @@ async function scanForTokens(surgical = true) {
     }
 
     const currentHostname = window.location.hostname;
-    console.log(`🎯 Modo: ${surgical ? 'CIRÚRGICO (apenas domínio atual)' : 'COMPLETO (todos os scripts)'}`);
+    console.log(`🎯 Modo: ${surgical ? 'SURGICAL (current domain only)' : 'COMPLETE (all scripts)'}`);
 
     // Obter todos os scripts da página
     const scripts = Array.from(document.scripts);
-    console.log(`🔍 Encontrados ${scripts.length} scripts na página`);
+    console.log(`🔍 Found ${scripts.length} scripts na página`);
 
     // Coletar conteúdo dos scripts de forma não-bloqueante
     const scriptsToAnalyze = [];
@@ -953,14 +953,14 @@ async function scanForTokens(surgical = true) {
       }
     }
 
-    console.log(`📦 ${scriptsToAnalyze.length} scripts coletados, iniciando análise em background...`);
+    console.log(`📦 ${scriptsToAnalyze.length} scripts coletados, starting analysis in background...`);
 
     // Usar Web Worker para análise pesada
     const results = await analyzeScriptsWithWorker(scriptsToAnalyze);
     foundTokens.tokens = results.tokens;
     foundTokens.scriptsAnalyzed = results.scriptsAnalyzed;
 
-    console.log(`✅ Scan completo: ${foundTokens.tokens.length} tokens em ${foundTokens.scriptsAnalyzed} scripts`);
+    console.log(`✅ Scan complete: ${foundTokens.tokens.length} tokens in ${foundTokens.scriptsAnalyzed} scripts`);
   } catch (error) {
     console.error('❌ Erro durante scan:', error);
   }
@@ -1066,7 +1066,7 @@ async function analyzeScriptsFallback(scripts) {
       continue;
     }
 
-    // Processar script em idle time APENAS
+    // Process script in idle time ONLY
     await new Promise(resolve => {
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(() => {
@@ -1094,7 +1094,7 @@ async function analyzeScriptsFallback(scripts) {
     await new Promise(resolve => setTimeout(resolve, 10));
   }
 
-  console.log(`✅ Fallback: ${foundTokens.tokens.length} tokens em ${foundTokens.scriptsAnalyzed} scripts`);
+  console.log(`✅ Fallback: ${foundTokens.tokens.length} tokens in ${foundTokens.scriptsAnalyzed} scripts`);
   return foundTokens;
 }
 
@@ -1123,7 +1123,7 @@ async function deepScanForTokens(maxDepth = 50) {
     }).catch(err => console.log('Background não disponível:', err));
 
     // Garantir que os módulos estão carregados
-    console.log('🔄 Aguardando carregamento dos módulos...');
+    console.log('🔄 Waiting for modules to load...');
     const loaded = await ensureModulesLoaded();
 
     // Verificar se Deep Crawler está disponível
@@ -1132,7 +1132,7 @@ async function deepScanForTokens(maxDepth = 50) {
       return await scanForTokens();
     }
 
-    console.log('✅ Módulos carregados, iniciando Deep Scan...');
+    console.log('✅ Modules loaded, starting Deep Scan...');
 
     // Criar instância do crawler e bucket detector
     const crawler = new DeepCrawler(maxDepth);
@@ -1141,13 +1141,13 @@ async function deepScanForTokens(maxDepth = 50) {
     // Iniciar crawling
     const allScripts = await crawler.crawl();
 
-    console.log(`📊 Scripts encontrados: ${allScripts.length}`);
+    console.log(`📊 Scripts found: ${allScripts.length}`);
 
-    // Analisar cada script encontrado
+    // Analyze each found script
     for (const scriptData of allScripts) {
       foundTokens.scriptsAnalyzed++;
 
-      // Análise de tokens padrão
+      // Standard token analysis
       analyzeScript(scriptData.content, scriptData.url, foundTokens);
 
       // Análise de buckets e bug bounty credentials
@@ -1177,24 +1177,24 @@ async function deepScanForTokens(maxDepth = 50) {
     const stats = crawler.getStats();
     foundTokens.pagesVisited = stats.pagesVisited;
 
-    console.log(`✅ Deep Scan completo:`);
+    console.log(`✅ Deep Scan complete:`);
     console.log(`   - Páginas visitadas: ${foundTokens.pagesVisited}`);
     console.log(`   - Scripts analisados: ${foundTokens.scriptsAnalyzed}`);
-    console.log(`   - Tokens encontrados: ${foundTokens.tokens.length}`);
-    console.log(`   - Buckets encontrados: ${foundTokens.buckets.length}`);
+    console.log(`   - Tokens found: ${foundTokens.tokens.length}`);
+    console.log(`   - Buckets found: ${foundTokens.buckets.length}`);
     console.log(`   - Bug Bounty Credentials: ${foundTokens.bugbountyCredentials.length}`);
 
-    // Combinar tokens padrão com bug bounty credentials
+    // Combine standard tokens with bug bounty credentials
     const allCredentials = [...foundTokens.tokens, ...foundTokens.bugbountyCredentials];
 
-    // Validar TODOS os tokens encontrados
+    // Validate ALL found tokens
     if (allCredentials.length > 0 && validatorModule) {
-      console.log('🔐 Validando todos os tokens encontrados...');
+      console.log('🔐 Validating all found tokens...');
       const validatedCredentials = await validateAllTokens(allCredentials);
 
-      // Filtrar apenas tokens válidos
+      // Filtrar apenas valid tokens
       const validTokens = validatedCredentials.filter(t => t.validation?.valid === true);
-      console.log(`✅ Validação completa: ${validTokens.length} tokens válidos de ${allCredentials.length} total`);
+      console.log(`✅ Validation complete: ${validTokens.length} valid tokens de ${allCredentials.length} total`);
 
       foundTokens.tokens = validatedCredentials;
       foundTokens.validTokens = validTokens;
@@ -1229,7 +1229,7 @@ async function deepScanForTokens(maxDepth = 50) {
 async function validateBuckets(buckets, bucketDetector) {
   const validatedBuckets = [];
 
-  console.log(`🔐 Iniciando validação de ${buckets.length} buckets...`);
+  console.log(`🔐 Starting validation of ${buckets.length} buckets...`);
 
   for (let i = 0; i < buckets.length; i++) {
     const bucket = buckets[i];
@@ -1260,7 +1260,7 @@ async function validateBuckets(buckets, bucketDetector) {
   return validatedBuckets;
 }
 
-// Validar tokens com rate limiting agressivo e processamento em background
+// Validate tokens with aggressive rate limiting and background processing
 async function validateAllTokens(tokens) {
   if (!validatorModule || !validatorModule.validateToken) {
     console.warn('⚠️ Módulo de validação não disponível');
@@ -1271,9 +1271,9 @@ async function validateAllTokens(tokens) {
   let validCount = 0;
   let invalidCount = 0;
 
-  console.log(`🔐 Iniciando validação de ${tokens.length} tokens em background...`);
+  console.log(`🔐 Starting validation of ${tokens.length} tokens in background...`);
 
-  // Validar em batches pequenos para não travar
+  // Validate in small batches to avoid freezing
   const BATCH_SIZE = 3;
   const DELAY_BETWEEN_BATCHES = 2000; // 2s entre batches
   const DELAY_BETWEEN_VALIDATIONS = 1000; // 1s entre validações
@@ -1306,7 +1306,7 @@ async function validateAllTokens(tokens) {
 
         if (validation.valid === true) {
           validCount++;
-          console.log(`⚠️ TOKEN VÁLIDO [${validatedTokens.length}/${tokens.length}]: ${token.type}`);
+          console.log(`⚠️ TOKEN VALID [${validatedTokens.length}/${tokens.length}]: ${token.type}`);
         } else if (validation.valid === false) {
           invalidCount++;
         }
@@ -1324,7 +1324,7 @@ async function validateAllTokens(tokens) {
     }
 
     // Progress log
-    console.log(`📊 Progresso: ${validatedTokens.length}/${tokens.length} (${validCount} válidos, ${invalidCount} inválidos)`);
+    console.log(`📊 Progresso: ${validatedTokens.length}/${tokens.length} (${validCount} valid, ${invalidCount} invalid)`);
 
     // Delay maior entre batches
     if (i + BATCH_SIZE < tokens.length) {
@@ -1332,7 +1332,7 @@ async function validateAllTokens(tokens) {
     }
   }
 
-  console.log(`✅ Validação completa: ${validCount} válidos | ${invalidCount} inválidos | ${tokens.length - validCount - invalidCount} não testados`);
+  console.log(`✅ Validation complete: ${validCount} valid | ${invalidCount} invalid | ${tokens.length - validCount - invalidCount} not tested`);
 
   return validatedTokens;
 }
@@ -1346,7 +1346,7 @@ function getLineAndColumn(content, index) {
   };
 }
 
-// Analisar script em busca de tokens com localização precisa + SEVERIDADE + ENDPOINTS
+// Analisar script in busca de tokens com localização precisa + SEVERIDADE + ENDPOINTS
 function analyzeScript(content, scriptUrl, results) {
   // Detectar ENDPOINTS de API
   if (results.endpoints !== undefined) {
@@ -1431,29 +1431,29 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'startManualScan') {
     // Scan básico (página atual)
     scanForTokens().then(async results => {
-      // Validar tokens se encontrados
+      // Validate tokens if found
       if (results.tokens.length > 0) {
         console.log('🔐 Validando tokens do scan manual...');
         results.tokens = await validateAllTokens(results.tokens);
 
-        // Filtrar apenas válidos
+        // Filtrar apenas valid
         const validTokens = results.tokens.filter(t => t.validation?.valid === true);
         results.validTokens = validTokens;
 
         if (validTokens.length > 0) {
-          console.log(`⚠️ ALERTA: ${validTokens.length} token(s) válido(s) encontrado(s)!`);
+          console.log(`⚠️ ALERTA: ${validTokens.length} valid token(s) found!`);
         }
       }
 
       sendResponse(results);
 
-      // Enviar apenas tokens VÁLIDOS para background
+      // Enviar apenas tokens VALIDS para background
       if (results.validTokens && results.validTokens.length > 0) {
         chrome.runtime.sendMessage({
           action: 'manualScan',
           data: {
             ...results,
-            tokens: results.validTokens // Enviar apenas válidos
+            tokens: results.validTokens // Enviar apenas valid
           }
         });
       }
@@ -1469,13 +1469,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     deepScanForTokens(depth).then(results => {
       sendResponse(results);
 
-      // Enviar apenas tokens VÁLIDOS para background
+      // Enviar apenas tokens VALIDS para background
       if (results.validTokens && results.validTokens.length > 0) {
         chrome.runtime.sendMessage({
           action: 'deepScan',
           data: {
             ...results,
-            tokens: results.validTokens // Enviar apenas válidos
+            tokens: results.validTokens // Enviar apenas valid
           }
         });
       }

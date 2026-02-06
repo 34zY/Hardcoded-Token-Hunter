@@ -1,5 +1,5 @@
 // Bucket Takeover Detector - OFJAAAH
-// Detecta vulnerabilidades de bucket takeover e URLs sensíveis para bug bounty
+// Detects bucket takeover vulnerabilities and sensitive URLs for bug bounty
 
 class BucketTakeoverDetector {
   constructor() {
@@ -7,7 +7,7 @@ class BucketTakeoverDetector {
     this.checkedUrls = new Set();
   }
 
-  // Padrões de bucket URLs
+  // Bucket URL patterns
   static BUCKET_PATTERNS = {
     AWS_S3: [
       /https?:\/\/([a-z0-9.-]+)\.s3\.amazonaws\.com/gi,
@@ -16,7 +16,7 @@ class BucketTakeoverDetector {
       /s3:\/\/([a-z0-9.-]+)/gi,
     ],
     GOOGLE_STORAGE: [
-      // Google Cloud Storage buckets - apenas storage real, não APIs genéricas
+      // Google Cloud Storage buckets - only real storage, not generic APIs
       /https?:\/\/storage\.googleapis\.com\/([a-z0-9._-]+)\//gi,
       /https?:\/\/([a-z0-9._-]+)\.storage\.googleapis\.com/gi,
       /gs:\/\/([a-z0-9._-]+)/gi,
@@ -59,7 +59,7 @@ class BucketTakeoverDetector {
     ]
   };
 
-  // Padrões de credenciais específicas para bug bounty
+  // Specific credential patterns for bug bounty
   static BUGBOUNTY_PATTERNS = {
     // Vercel
     VERCEL_TOKEN: [
@@ -90,7 +90,7 @@ class BucketTakeoverDetector {
       /https?:\/\/([a-z0-9]{20})\.supabase\.co/gi,
     ],
 
-    // AWS Mais específico
+    // AWS More specific
     AWS_ACCESS_KEY_ID: [
       /['"](AWS_ACCESS_KEY_ID)['"]\s*[:=]\s*['"]([A-Z0-9]{20})['"]/gi,
       /AKIA[0-9A-Z]{16}/g,
@@ -102,7 +102,7 @@ class BucketTakeoverDetector {
       /['"](AWS_SESSION_TOKEN)['"]\s*[:=]\s*['"]([a-zA-Z0-9/+=]{100,})['"]/gi,
     ],
 
-    // Firebase mais específico
+    // Firebase more specific
     FIREBASE_CONFIG: [
       /['"](apiKey)['"]\s*[:=]\s*['"]AIzaSy([a-zA-Z0-9_\-]{33})['"]/gi,
       /['"](messagingSenderId)['"]\s*[:=]\s*['"]([0-9]{12})['"]/gi,
@@ -120,7 +120,7 @@ class BucketTakeoverDetector {
       /redis:\/\/[^:\s]*:[^@\s]+@[^\s]+/gi,
     ],
 
-    // API Endpoints sensíveis
+    // Sensitive API Endpoints
     GRAPHQL_ENDPOINT: [
       /https?:\/\/[^\s]+\/graphql/gi,
       /['"](GRAPHQL_ENDPOINT|GRAPHQL_URL)['"]\s*[:=]\s*['"]([^'"]+)['"]/gi,
@@ -180,7 +180,7 @@ class BucketTakeoverDetector {
     ],
   };
 
-  // URLs de serviços comuns do Google que NÃO são relevantes para bug bounty
+  // Google common service URLs that are NOT relevant for bug bounty
   static GOOGLE_COMMON_SERVICES = [
     'mail.google.com',
     'gmail.com',
@@ -220,21 +220,21 @@ class BucketTakeoverDetector {
     'fonts.gstatic.com'
   ];
 
-  // Verificar se URL é de serviço comum (não relevante para bug bounty)
+  // Check if URL is from common service (not relevant for bug bounty)
   static isCommonServiceUrl(url) {
     try {
       const urlObj = new URL(url);
       const hostname = urlObj.hostname.toLowerCase();
       const fullUrl = url.toLowerCase();
 
-      // Verificar se é serviço comum do Google
+      // Check if it's a common Google service
       for (const service of BucketTakeoverDetector.GOOGLE_COMMON_SERVICES) {
         if (hostname === service || hostname.endsWith('.' + service) || fullUrl.includes(service)) {
           return true;
         }
       }
 
-      // URLs genéricas de navegação que não são credenciais
+      // Generic navigation URLs that are not credentials
       const navigationPatterns = [
         /\/(inbox|sent|drafts|trash|spam)/i,
         /\/mail\/u\/\d+/i,
@@ -410,7 +410,7 @@ class BucketTakeoverDetector {
       if (response.status === 404) {
         return {
           vulnerable: true,
-          status: 'POSSÍVEL TAKEOVER: Bucket não encontrado (404)',
+          status: 'POSSIBLE TAKEOVER: Bucket not found (404)',
           severity: 'CRITICAL',
           recommendation: 'Verificar se o bucket pode ser registrado'
         };
@@ -419,7 +419,7 @@ class BucketTakeoverDetector {
     } catch (error) {
       // Erros de CORS ou DNS podem indicar bucket inexistente
       if (error.message.includes('CORS') || error.message.includes('NetworkError')) {
-        // Tentar validação adicional
+        // Try additional validation
         return await this.deepBucketValidation(finding);
       }
 
@@ -437,12 +437,12 @@ class BucketTakeoverDetector {
     };
   }
 
-  // Validação profunda de bucket
+  // Deep bucket validation
   async deepBucketValidation(finding) {
     const bucketName = finding.bucketName;
     const type = finding.subtype;
 
-    // Verificações específicas por tipo
+    // Type-specific checks
     if (type === 'AWS_S3') {
       return await this.validateS3Bucket(bucketName);
     } else if (type === 'VERCEL_BLOB') {
@@ -453,7 +453,7 @@ class BucketTakeoverDetector {
 
     return {
       vulnerable: null,
-      status: 'Validação profunda não disponível para este tipo',
+      status: 'Deep validation not available for this type',
       severity: 'MEDIUM'
     };
   }
@@ -461,7 +461,7 @@ class BucketTakeoverDetector {
   // Validar bucket S3
   async validateS3Bucket(bucketName) {
     try {
-      // Tentar várias regiões
+      // Try multiple regions
       const regions = ['us-east-1', 'us-west-2', 'eu-west-1'];
 
       for (const region of regions) {
@@ -493,7 +493,7 @@ class BucketTakeoverDetector {
     } catch (error) {
       return {
         vulnerable: null,
-        status: 'Erro na validação S3: ' + error.message,
+        status: 'S3 validation error: ' + error.message,
         severity: 'MEDIUM'
       };
     }
@@ -518,7 +518,7 @@ class BucketTakeoverDetector {
             text.includes('This page could not be found')) {
           return {
             vulnerable: true,
-            status: 'VERCEL TAKEOVER POSSÍVEL: Projeto não encontrado',
+            status: 'VERCEL POSSIBLE TAKEOVER: Project not found',
             severity: 'CRITICAL',
             recommendation: 'Verificar se o domínio pode ser registrado no Vercel'
           };
@@ -557,7 +557,7 @@ class BucketTakeoverDetector {
       if (response.status === 404) {
         return {
           vulnerable: true,
-          status: 'SUPABASE TAKEOVER POSSÍVEL: Projeto não encontrado',
+          status: 'SUPABASE POSSIBLE TAKEOVER: Project not found',
           severity: 'CRITICAL',
           recommendation: 'Verificar se o projeto foi deletado'
         };
@@ -580,7 +580,7 @@ class BucketTakeoverDetector {
 
   // Extrair nome do bucket de uma URL
   extractBucketName(url) {
-    // Tentar várias estratégias de extração
+    // Try multiple extraction strategies
     const patterns = [
       /https?:\/\/([a-z0-9.-]+)\.s3/i,
       /https?:\/\/s3[^\/]*\/([a-z0-9.-]+)/i,
@@ -638,7 +638,7 @@ class BucketTakeoverDetector {
   }
 }
 
-// Exportar para uso global (compatível com extensões Chrome)
+// Export for global use (compatible with Chrome extensions)
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = BucketTakeoverDetector;
 }
