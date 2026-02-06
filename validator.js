@@ -45,7 +45,7 @@ const TOKEN_VALIDATORS = {
         const data = await response.json();
         return {
           valid: true,
-          status: `Token valid - Usuário: ${data.login}`,
+          status: `Token valid - User: ${data.login}`,
           severity: 'CRITICAL',
           metadata: { username: data.login, email: data.email }
         };
@@ -72,7 +72,7 @@ const TOKEN_VALIDATORS = {
         const data = await response.json();
         return {
           valid: true,
-          status: `Token valid - Usuário: ${data.username}`,
+          status: `Token valid - User: ${data.username}`,
           severity: 'CRITICAL',
           metadata: { username: data.username, email: data.email }
         };
@@ -113,7 +113,7 @@ const TOKEN_VALIDATORS = {
 
         return {
           valid: true,
-          status: `Token VERCEL válido - Usuário: ${userData.user.username || userData.user.email}`,
+          status: `VERCEL Token valid - User: ${userData.user.username || userData.user.email}`,
           severity: 'CRITICAL',
           metadata: {
             username: userData.user.username,
@@ -443,7 +443,7 @@ async function validateToken(type, value) {
   }
 }
 
-// Validar múltiplos tokens em lote
+// Validar múltiplos tokens in lote
 async function validateTokensBatch(tokens) {
   const results = [];
 
@@ -461,5 +461,5 @@ async function validateTokensBatch(tokens) {
   return results;
 }
 
-// Exportar para uso em outros scripts (ES6 module)
+// Exportar para uso in outros scripts (ES6 module)
 export { validateToken, validateTokensBatch };

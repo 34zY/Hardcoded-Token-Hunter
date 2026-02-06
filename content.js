@@ -415,7 +415,7 @@ function isFalsePositive(value, context) {
     return true;
   }
 
-  // Tokens reais raramente são apenas palavras em inglês separadas por underscores
+  // Tokens reais raramente são apenas palavras in inglês separadas por underscores
   // Se todas as partes (separadas por _) são palavras comuns, é falso positivo
   const parts = value.toLowerCase().split('_');
   const commonWords = [
@@ -953,14 +953,14 @@ async function scanForTokens(surgical = true) {
       }
     }
 
-    console.log(`📦 ${scriptsToAnalyze.length} scripts coletados, iniciando análise em background...`);
+    console.log(`📦 ${scriptsToAnalyze.length} scripts coletados, iniciando análise in background...`);
 
     // Usar Web Worker para análise pesada
     const results = await analyzeScriptsWithWorker(scriptsToAnalyze);
     foundTokens.tokens = results.tokens;
     foundTokens.scriptsAnalyzed = results.scriptsAnalyzed;
 
-    console.log(`✅ Scan complete: ${foundTokens.tokens.length} tokens em ${foundTokens.scriptsAnalyzed} scripts`);
+    console.log(`✅ Scan complete: ${foundTokens.tokens.length} tokens in ${foundTokens.scriptsAnalyzed} scripts`);
   } catch (error) {
     console.error('❌ Erro durante scan:', error);
   }
@@ -1066,7 +1066,7 @@ async function analyzeScriptsFallback(scripts) {
       continue;
     }
 
-    // Processar script em idle time APENAS
+    // Processar script in idle time APENAS
     await new Promise(resolve => {
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(() => {
@@ -1094,7 +1094,7 @@ async function analyzeScriptsFallback(scripts) {
     await new Promise(resolve => setTimeout(resolve, 10));
   }
 
-  console.log(`✅ Fallback: ${foundTokens.tokens.length} tokens em ${foundTokens.scriptsAnalyzed} scripts`);
+  console.log(`✅ Fallback: ${foundTokens.tokens.length} tokens in ${foundTokens.scriptsAnalyzed} scripts`);
   return foundTokens;
 }
 
@@ -1229,7 +1229,7 @@ async function deepScanForTokens(maxDepth = 50) {
 async function validateBuckets(buckets, bucketDetector) {
   const validatedBuckets = [];
 
-  console.log(`🔐 Iniciando validação de ${buckets.length} buckets...`);
+  console.log(`🔐 Starting validation of ${buckets.length} buckets...`);
 
   for (let i = 0; i < buckets.length; i++) {
     const bucket = buckets[i];
@@ -1260,7 +1260,7 @@ async function validateBuckets(buckets, bucketDetector) {
   return validatedBuckets;
 }
 
-// Validar tokens com rate limiting agressivo e processamento em background
+// Validar tokens com rate limiting agressivo e processamento in background
 async function validateAllTokens(tokens) {
   if (!validatorModule || !validatorModule.validateToken) {
     console.warn('⚠️ Módulo de validação não disponível');
@@ -1271,9 +1271,9 @@ async function validateAllTokens(tokens) {
   let validCount = 0;
   let invalidCount = 0;
 
-  console.log(`🔐 Iniciando validação de ${tokens.length} tokens em background...`);
+  console.log(`🔐 Starting validation of ${tokens.length} tokens in background...`);
 
-  // Validar em batches pequenos para não travar
+  // Validar in batches pequenos para não travar
   const BATCH_SIZE = 3;
   const DELAY_BETWEEN_BATCHES = 2000; // 2s entre batches
   const DELAY_BETWEEN_VALIDATIONS = 1000; // 1s entre validações
@@ -1346,7 +1346,7 @@ function getLineAndColumn(content, index) {
   };
 }
 
-// Analisar script em busca de tokens com localização precisa + SEVERIDADE + ENDPOINTS
+// Analisar script in busca de tokens com localização precisa + SEVERIDADE + ENDPOINTS
 function analyzeScript(content, scriptUrl, results) {
   // Detectar ENDPOINTS de API
   if (results.endpoints !== undefined) {
