@@ -1,21 +1,21 @@
 // Content Script - OFJAAAH Hardcoded Token Detector
-// Scanner automático e manual de tokens hardcoded
+// Automatic and manual hardcoded token scanner
 
-// Prevenir múltiplas execuções do content script
+// Prevent multiple executions of content script
 if (window.hardcodedTokenDetectorLoaded) {
   console.log('🔍 Hardcoded Token Detector já carregado, ignorando execução duplicada');
 } else {
   window.hardcodedTokenDetectorLoaded = true;
   console.log('🔍 Hardcoded Token Detector by OFJAAAH - Content Script carregado');
 
-// Importar validador, crawler e bucket detector
+// Import validator, crawler and bucket detector
 let validatorModule = null;
 let DeepCrawler = null;
 let BucketTakeoverDetector = null;
 let modulesLoaded = false;
 let modulesLoadingPromise = null;
 
-// Função para garantir que os módulos estão carregados
+// Function to ensure modules are loaded
 async function ensureModulesLoaded() {
   if (modulesLoaded) {
     return true;
@@ -28,28 +28,28 @@ async function ensureModulesLoaded() {
 
   modulesLoadingPromise = (async () => {
     try {
-      // Carregar validador usando import dinâmico
+      // Load validator using dynamic import
       const validatorUrl = chrome.runtime.getURL('validator.js');
       const validatorImport = await import(validatorUrl);
       validatorModule = validatorImport;
       console.log('✅ Módulo de validação carregado');
 
-      // Carregar deep crawler usando import dinâmico
+      // Load deep crawler using dynamic import
       try {
         const crawlerUrl = chrome.runtime.getURL('deep-crawler.js');
         const crawlerModule = await import(crawlerUrl);
 
-        // Tentar obter a classe do módulo de diferentes formas
+        // Try to get the module class in different ways
         DeepCrawler = crawlerModule.default || crawlerModule.DeepCrawler;
 
-        // Se ainda não estiver disponível, criar uma referência global
+        // If still not available, create a global reference
         if (!DeepCrawler) {
-          // Injetar script no contexto da página para ter acesso ao window
+          // Inject script in page context to access window
           await new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = crawlerUrl;
             script.onload = () => {
-              // Aguardar um momento para o script ser executado
+              // Wait a moment for the script to execute
               setTimeout(() => {
                 if (typeof window.DeepCrawler !== 'undefined') {
                   DeepCrawler = window.DeepCrawler;
@@ -74,22 +74,22 @@ async function ensureModulesLoaded() {
         console.warn('⚠️ Erro ao carregar Deep Crawler:', error.message);
       }
 
-      // Carregar bucket takeover detector usando import dinâmico
+      // Load bucket takeover detector using dynamic import
       try {
         const bucketUrl = chrome.runtime.getURL('bucket-takeover-detector.js');
         const bucketModule = await import(bucketUrl);
 
-        // Tentar obter a classe do módulo de diferentes formas
+        // Try to get the module class in different ways
         BucketTakeoverDetector = bucketModule.default || bucketModule.BucketTakeoverDetector;
 
-        // Se ainda não estiver disponível, criar uma referência global
+        // If still not available, create a global reference
         if (!BucketTakeoverDetector) {
-          // Injetar script no contexto da página para ter acesso ao window
+          // Inject script in page context to access window
           await new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = bucketUrl;
             script.onload = () => {
-              // Aguardar um momento para o script ser executado
+              // Wait a moment for the script to execute
               setTimeout(() => {
                 if (typeof window.BucketTakeoverDetector !== 'undefined') {
                   BucketTakeoverDetector = window.BucketTakeoverDetector;
@@ -114,7 +114,7 @@ async function ensureModulesLoaded() {
         console.warn('⚠️ Erro ao carregar Bucket Takeover Detector:', error.message);
       }
 
-      // Marcar como carregado se pelo menos o validador funcionar
+      // Mark as loaded if at least the validator works
       modulesLoaded = !!(validatorModule && (DeepCrawler || BucketTakeoverDetector));
       return modulesLoaded;
     } catch (error) {
@@ -128,14 +128,14 @@ async function ensureModulesLoaded() {
   return modulesLoaded;
 }
 
-// Iniciar carregamento dos módulos imediatamente
+// Start loading modules immediately
 ensureModulesLoaded();
 
 // ========================================
 // FILTRO DE DOMÍNIOS - REDES SOCIAIS E SITES POPULARES
 // ========================================
 const SOCIAL_MEDIA_DOMAINS = [
-  // Redes Sociais Principais
+  // Main Social Networks
   'facebook.com', 'fb.com', 'fbcdn.net', 'facebook.net',
   'instagram.com', 'cdninstagram.com',
   'twitter.com', 'x.com', 't.co', 'twimg.com',
@@ -149,7 +149,7 @@ const SOCIAL_MEDIA_DOMAINS = [
   'telegram.org', 't.me',
   'discord.com', 'discord.gg', 'discordapp.com', 'discordapp.net',
 
-  // Google Services (Analytics, Ads, etc) - Removido google.com e googleapis.com para permitir GCP scan
+  // Google Services (Analytics, Ads, etc) - Removed google.com and googleapis.com to allow GCP scan
   'google-analytics.com', 'googletagmanager.com',
   'doubleclick.net', 'googlesyndication.com', 'googleadservices.com',
   'gstatic.com',
@@ -169,7 +169,7 @@ const SOCIAL_MEDIA_DOMAINS = [
   'intercom.io', 'intercom.com',
   'zendesk.com',
 
-  // CDNs e Serviços de Infraestrutura
+  // CDNs and Infrastructure Services
   'cloudflare.com', 'cloudflareinsights.com', 'cf-assets.com',
   'akamai.net', 'akamaihd.net',
   'fastly.net',
@@ -184,7 +184,7 @@ const SOCIAL_MEDIA_DOMAINS = [
   'criteo.com',
   'rubiconproject.com',
 
-  // Outras Plataformas Comuns
+  // Other Common Platforms
   'medium.com',
   'wordpress.com', 'wp.com',
   'tumblr.com',
@@ -193,7 +193,7 @@ const SOCIAL_MEDIA_DOMAINS = [
   'spotify.com', 'scdn.co',
   'apple.com', 'icloud.com',
 
-  // E-commerce e Shopping (bloquear site, mas permitir buckets)
+  // E-commerce and Shopping (block site, but allow buckets)
   'amazon.com', 'amazon.com.br', 'amazon.co.uk', 'amazon.de', 'amazon.fr',
   'amazon.es', 'amazon.it', 'amazon.ca', 'amazon.co.jp', 'amazon.in',
   'ssl-images-amazon.com', 'media-amazon.com', 'amazonwebservices.com',
@@ -210,7 +210,7 @@ const SOCIAL_MEDIA_DOMAINS = [
 // encontrar referências a buckets S3/GCS no código JavaScript normalmente.
 // ========================================
 
-// Verificar se o domínio atual deve ser ignorado para scan
+// Check if current domain should be skipped for scan
 function shouldSkipDomain(url) {
   try {
     const hostname = new URL(url).hostname.toLowerCase();
