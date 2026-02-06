@@ -17,17 +17,17 @@ const TOKEN_VALIDATORS = {
 
       // If it returns a specific invalid API key error
       if (data.error && data.error.message === 'API key not valid') {
-        return { valid: false, status: 'Token inválido ou expirado' };
+        return { valid: false, status: 'Token invalid or expired' };
       }
 
       // If it returns any other response, the API key is valid
       if (response.status === 400 && data.error && data.error.message.includes('MISSING')) {
-        return { valid: true, status: 'Token válido e ativo', severity: 'CRITICAL' };
+        return { valid: true, status: 'Token valid and active', severity: 'CRITICAL' };
       }
 
-      return { valid: true, status: 'Token válido', severity: 'CRITICAL' };
+      return { valid: true, status: 'Token valid', severity: 'CRITICAL' };
     } catch (error) {
-      return { valid: null, status: 'Erro ao validar: ' + error.message };
+      return { valid: null, status: 'Validation error: ' + error.message };
     }
   },
 
@@ -45,17 +45,17 @@ const TOKEN_VALIDATORS = {
         const data = await response.json();
         return {
           valid: true,
-          status: `Token válido - Usuário: ${data.login}`,
+          status: `Token valid - Usuário: ${data.login}`,
           severity: 'CRITICAL',
           metadata: { username: data.login, email: data.email }
         };
       } else if (response.status === 401) {
-        return { valid: false, status: 'Token inválido ou expirado' };
+        return { valid: false, status: 'Token invalid or expired' };
       } else {
         return { valid: null, status: `Status HTTP: ${response.status}` };
       }
     } catch (error) {
-      return { valid: null, status: 'Erro ao validar: ' + error.message };
+      return { valid: null, status: 'Validation error: ' + error.message };
     }
   },
 
@@ -72,17 +72,17 @@ const TOKEN_VALIDATORS = {
         const data = await response.json();
         return {
           valid: true,
-          status: `Token válido - Usuário: ${data.username}`,
+          status: `Token valid - Usuário: ${data.username}`,
           severity: 'CRITICAL',
           metadata: { username: data.username, email: data.email }
         };
       } else if (response.status === 401) {
-        return { valid: false, status: 'Token inválido ou expirado' };
+        return { valid: false, status: 'Token invalid or expired' };
       } else {
         return { valid: null, status: `Status HTTP: ${response.status}` };
       }
     } catch (error) {
-      return { valid: null, status: 'Erro ao validar: ' + error.message };
+      return { valid: null, status: 'Validation error: ' + error.message };
     }
   },
 
@@ -124,12 +124,12 @@ const TOKEN_VALIDATORS = {
           }
         };
       } else if (userResponse.status === 403 || userResponse.status === 401) {
-        return { valid: false, status: 'Token inválido ou expirado' };
+        return { valid: false, status: 'Token invalid or expired' };
       } else {
         return { valid: null, status: `Status HTTP: ${userResponse.status}` };
       }
     } catch (error) {
-      return { valid: null, status: 'Erro ao validar: ' + error.message };
+      return { valid: null, status: 'Validation error: ' + error.message };
     }
   },
 
@@ -232,7 +232,7 @@ const TOKEN_VALIDATORS = {
 
       return { valid: null, status: 'Token não parece ser uma Supabase key válida' };
     } catch (error) {
-      return { valid: null, status: 'Erro ao validar: ' + error.message };
+      return { valid: null, status: 'Validation error: ' + error.message };
     }
   },
 
@@ -262,7 +262,7 @@ const TOKEN_VALIDATORS = {
       if (data.ok) {
         return {
           valid: true,
-          status: `Token válido - Team: ${data.team}`,
+          status: `Token valid - Team: ${data.team}`,
           severity: 'HIGH',
           metadata: { user: data.user, team: data.team }
         };
@@ -270,7 +270,7 @@ const TOKEN_VALIDATORS = {
         return { valid: false, status: data.error || 'Token inválido' };
       }
     } catch (error) {
-      return { valid: null, status: 'Erro ao validar: ' + error.message };
+      return { valid: null, status: 'Validation error: ' + error.message };
     }
   },
 
@@ -291,12 +291,12 @@ const TOKEN_VALIDATORS = {
           severity: 'CRITICAL'
         };
       } else if (response.status === 401) {
-        return { valid: false, status: 'Token inválido ou expirado' };
+        return { valid: false, status: 'Token invalid or expired' };
       } else {
         return { valid: null, status: `Status HTTP: ${response.status}` };
       }
     } catch (error) {
-      return { valid: null, status: 'Erro ao validar: ' + error.message };
+      return { valid: null, status: 'Validation error: ' + error.message };
     }
   },
 
@@ -326,7 +326,7 @@ const TOKEN_VALIDATORS = {
         return { valid: null, status: data.error?.message || 'Erro ao validar' };
       }
     } catch (error) {
-      return { valid: null, status: 'Erro ao validar: ' + error.message };
+      return { valid: null, status: 'Validation error: ' + error.message };
     }
   },
 

@@ -457,10 +457,10 @@ async function sendToDiscord(foundTokens, tab, webhookUrl) {
     if (response.ok) {
       console.log('✅ Tokens sent to Discord');
     } else {
-      console.error('❌ Erro ao enviar para Discord:', response.status, response.statusText);
+      console.error('❌ Error sending to Discord:', response.status, response.statusText);
     }
   } catch (error) {
-    console.error('❌ Erro ao enviar para Discord:', error);
+    console.error('❌ Error sending to Discord:', error);
   }
 }
 
@@ -517,7 +517,7 @@ async function initializeExtensionState() {
 
     console.log('✅ Estado da extensão inicializado');
   } catch (error) {
-    console.error('❌ Erro ao inicializar estado da extensão:', error);
+    console.error('❌ Error initializing extension state:', error);
   }
 }
 
@@ -593,7 +593,7 @@ async function configureProxy(settings) {
       }
     }
   } catch (error) {
-    console.error('❌ Erro ao configurar proxy:', error);
+    console.error('❌ Error configuring proxy:', error);
   }
 }
 
@@ -679,7 +679,7 @@ async function markTokenAsViewed(tokenId, tokenValue) {
       return { success: false, message: 'Token not found' };
     }
   } catch (error) {
-    console.error('❌ Erro ao marcar token como visualizado:', error);
+    console.error('❌ Error marking token as viewed:', error);
     return { success: false, error: error.message };
   }
 }

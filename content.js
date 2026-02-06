@@ -3,10 +3,10 @@
 
 // Prevent multiple executions of content script
 if (window.hardcodedTokenDetectorLoaded) {
-  console.log('🔍 Hardcoded Token Detector já carregado, ignorando execução duplicada');
+  console.log('🔍 Hardcoded Token Detector already loaded, ignoring duplicate execution');
 } else {
   window.hardcodedTokenDetectorLoaded = true;
-  console.log('🔍 Hardcoded Token Detector by OFJAAAH - Content Script carregado');
+  console.log('🔍 Hardcoded Token Detector by OFJAAAH - Content Script loaded');
 
 // Import validator, crawler and bucket detector
 let validatorModule = null;
@@ -32,7 +32,7 @@ async function ensureModulesLoaded() {
       const validatorUrl = chrome.runtime.getURL('validator.js');
       const validatorImport = await import(validatorUrl);
       validatorModule = validatorImport;
-      console.log('✅ Módulo de validação carregado');
+      console.log('✅ Validation module loaded');
 
       // Load deep crawler using dynamic import
       try {
@@ -66,7 +66,7 @@ async function ensureModulesLoaded() {
         }
 
         if (DeepCrawler) {
-          console.log('✅ Deep Crawler carregado');
+          console.log('✅ Deep Crawler loaded');
         } else {
           console.warn('⚠️ Deep Crawler not found');
         }
@@ -106,7 +106,7 @@ async function ensureModulesLoaded() {
         }
 
         if (BucketTakeoverDetector) {
-          console.log('✅ Bucket Takeover Detector carregado');
+          console.log('✅ Bucket Takeover Detector loaded');
         } else {
           console.warn('⚠️ Bucket Takeover Detector not found');
         }
@@ -778,7 +778,7 @@ async function initAutoScan() {
         const results = await scanForTokens(true); // true = modo cirúrgico
 
         if (results.tokens.length > 0) {
-          console.log(`✅ Auto-scan completo: ${results.tokens.length} token(s) found`);
+          console.log(`✅ Auto-scan complete: ${results.tokens.length} token(s) found`);
 
           // DESABILITADO: Validação automática pode travar o site
           // A validação só acontece no SCAN MANUAL
@@ -790,7 +790,7 @@ async function initAutoScan() {
             data: results
           });
         } else {
-          console.log('✅ Auto-scan completo: no tokens found');
+          console.log('✅ Auto-scan complete: no tokens found');
         }
       }, settings.scanDelay || 3000);
     }
@@ -820,7 +820,7 @@ async function scanForTokens(surgical = true) {
     }
 
     const currentHostname = window.location.hostname;
-    console.log(`🎯 Modo: ${surgical ? 'CIRÚRGICO (apenas domínio atual)' : 'COMPLETO (todos os scripts)'}`);
+    console.log(`🎯 Modo: ${surgical ? 'SURGICAL (current domain only)' : 'COMPLETE (all scripts)'}`);
 
     // Obter todos os scripts da página
     const scripts = Array.from(document.scripts);
@@ -960,7 +960,7 @@ async function scanForTokens(surgical = true) {
     foundTokens.tokens = results.tokens;
     foundTokens.scriptsAnalyzed = results.scriptsAnalyzed;
 
-    console.log(`✅ Scan completo: ${foundTokens.tokens.length} tokens em ${foundTokens.scriptsAnalyzed} scripts`);
+    console.log(`✅ Scan complete: ${foundTokens.tokens.length} tokens em ${foundTokens.scriptsAnalyzed} scripts`);
   } catch (error) {
     console.error('❌ Erro durante scan:', error);
   }
@@ -1123,7 +1123,7 @@ async function deepScanForTokens(maxDepth = 50) {
     }).catch(err => console.log('Background não disponível:', err));
 
     // Garantir que os módulos estão carregados
-    console.log('🔄 Aguardando carregamento dos módulos...');
+    console.log('🔄 Waiting for modules to load...');
     const loaded = await ensureModulesLoaded();
 
     // Verificar se Deep Crawler está disponível
@@ -1132,7 +1132,7 @@ async function deepScanForTokens(maxDepth = 50) {
       return await scanForTokens();
     }
 
-    console.log('✅ Módulos carregados, iniciando Deep Scan...');
+    console.log('✅ Modules loaded, starting Deep Scan...');
 
     // Criar instância do crawler e bucket detector
     const crawler = new DeepCrawler(maxDepth);
@@ -1177,7 +1177,7 @@ async function deepScanForTokens(maxDepth = 50) {
     const stats = crawler.getStats();
     foundTokens.pagesVisited = stats.pagesVisited;
 
-    console.log(`✅ Deep Scan completo:`);
+    console.log(`✅ Deep Scan complete:`);
     console.log(`   - Páginas visitadas: ${foundTokens.pagesVisited}`);
     console.log(`   - Scripts analisados: ${foundTokens.scriptsAnalyzed}`);
     console.log(`   - Tokens encontrados: ${foundTokens.tokens.length}`);
