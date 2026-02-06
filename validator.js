@@ -443,7 +443,7 @@ async function validateToken(type, value) {
   }
 }
 
-// Validar múltiplos tokens in lote
+// Validate multiple tokens in batch
 async function validateTokensBatch(tokens) {
   const results = [];
 

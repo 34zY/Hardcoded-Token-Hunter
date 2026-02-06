@@ -415,7 +415,7 @@ function isFalsePositive(value, context) {
     return true;
   }
 
-  // Tokens reais raramente são apenas palavras in inglês separadas por underscores
+  // Real tokens are rarely just English words separated by underscores
   // Se todas as partes (separadas por _) são palavras comuns, é falso positivo
   const parts = value.toLowerCase().split('_');
   const commonWords = [
@@ -953,7 +953,7 @@ async function scanForTokens(surgical = true) {
       }
     }
 
-    console.log(`📦 ${scriptsToAnalyze.length} scripts coletados, iniciando análise in background...`);
+    console.log(`📦 ${scriptsToAnalyze.length} scripts coletados, starting analysis in background...`);
 
     // Usar Web Worker para análise pesada
     const results = await analyzeScriptsWithWorker(scriptsToAnalyze);
@@ -1066,7 +1066,7 @@ async function analyzeScriptsFallback(scripts) {
       continue;
     }
 
-    // Processar script in idle time APENAS
+    // Process script in idle time ONLY
     await new Promise(resolve => {
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(() => {
@@ -1260,7 +1260,7 @@ async function validateBuckets(buckets, bucketDetector) {
   return validatedBuckets;
 }
 
-// Validar tokens com rate limiting agressivo e processamento in background
+// Validate tokens with aggressive rate limiting and background processing
 async function validateAllTokens(tokens) {
   if (!validatorModule || !validatorModule.validateToken) {
     console.warn('⚠️ Módulo de validação não disponível');
@@ -1273,7 +1273,7 @@ async function validateAllTokens(tokens) {
 
   console.log(`🔐 Starting validation of ${tokens.length} tokens in background...`);
 
-  // Validar in batches pequenos para não travar
+  // Validate in small batches to avoid freezing
   const BATCH_SIZE = 3;
   const DELAY_BETWEEN_BATCHES = 2000; // 2s entre batches
   const DELAY_BETWEEN_VALIDATIONS = 1000; // 1s entre validações
