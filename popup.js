@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const scriptsCount = document.getElementById('scriptsCount');
   const tokensCount = document.getElementById('tokensCount');
 
-  // Carregar estado do modo automático
+  // Load automatic mode state
   loadAutoModeState();
 
-  // Verificar se há Deep Scan em andamento
+  // Check if Deep Scan is in progress
   checkDeepScanState();
 
   // Event listeners
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('autoModeToggle').addEventListener('click', toggleAutoMode);
 });
 
-// Carregar estado do modo automático
+// Load automatic mode state
 async function loadAutoModeState() {
   try {
     const { settings } = await chrome.storage.local.get('settings');
@@ -30,20 +30,20 @@ async function loadAutoModeState() {
     if (settings && settings.autoScanEnabled) {
       autoModeToggle.textContent = '🤖 Auto: ON';
       autoModeToggle.classList.add('active');
-      modeIndicator.textContent = '✅ Modo Automático Ativo';
+      modeIndicator.textContent = '✅ Automatic Mode Active';
       modeIndicator.className = 'mode-indicator auto-on';
     } else {
       autoModeToggle.textContent = '🤖 Auto: OFF';
       autoModeToggle.classList.remove('active');
-      modeIndicator.textContent = '⚪ Modo Manual';
+      modeIndicator.textContent = '⚪ Manual Mode';
       modeIndicator.className = 'mode-indicator auto-off';
     }
   } catch (error) {
-    console.error('Erro ao carregar estado:', error);
+    console.error('Error loading state:', error);
   }
 }
 
-// Verificar se há Deep Scan em andamento
+// Check if Deep Scan is in progress
 async function checkDeepScanState() {
   try {
     const response = await chrome.runtime.sendMessage({ action: 'getDeepScanState' });
@@ -67,28 +67,28 @@ async function checkDeepScanState() {
       const seconds = elapsedTime % 60;
 
       loadingText.innerHTML = `
-        🕷️ Deep Scan em andamento...<br>
-        <small>Tempo: ${minutes}m ${seconds}s | Scripts: ${state.progress.scriptsAnalyzed} | Tokens: ${state.progress.tokensFound}</small>
+        🕷️ Deep Scan in progress...<br>
+        <small>Time: ${minutes}m ${seconds}s | Scripts: ${state.progress.scriptsAnalyzed} | Tokens: ${state.progress.tokensFound}</small>
       `;
 
       results.innerHTML = `
         <div class="no-results">
           <div class="no-results-icon">🔄</div>
-          <p>Deep Scan em andamento...</p>
+          <p>Deep Scan in progress...</p>
           <p style="font-size: 10px; margin-top: 5px;">
-            O scan continuará rodando em background mesmo se você fechar o popup.
+            The scan will continue running in background even if you close the popup.
           </p>
         </div>
       `;
 
-      console.log('📊 Deep Scan em andamento detectado:', state.progress);
+      console.log('📊 Deep Scan in progress detected:', state.progress);
     }
   } catch (error) {
-    console.log('Nenhum Deep Scan em andamento');
+    console.log('No Deep Scan in progress');
   }
 }
 
-// Realizar scan manual
+// Perform manual scan
 async function performScan() {
   const scanBtn = document.getElementById('scanBtn');
   const loading = document.getElementById('loading');
@@ -108,30 +108,30 @@ async function performScan() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (!tab || !tab.id) {
-      throw new Error('Nenhuma aba ativa encontrada');
+      throw new Error('No active tab found');
     }
 
-    // Injetar e executar o script de detecção diretamente
+    // Inject and execute detection script directly
     const response = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: scanForHardcodedTokens
     });
 
     if (!response || !response[0] || !response[0].result) {
-      throw new Error('Erro ao executar scan na página');
+      throw new Error('Error executing scan on page');
     }
 
     const foundTokens = response[0].result;
 
-    // Enviar para background se houver tokens
+    // Send to background if there are tokens
     if (foundTokens.tokens.length > 0) {
       chrome.runtime.sendMessage({
         action: 'manualScan',
         data: foundTokens
-      }).catch(err => console.log('Background não disponível:', err));
+      }).catch(err => console.log('Background not available:', err));
     }
 
-    // Mostrar estatísticas
+    // Show statistics
     loading.style.display = 'none';
     stats.style.display = 'block';
     scanBtn.style.display = 'block';
@@ -139,7 +139,7 @@ async function performScan() {
     scriptsCount.textContent = foundTokens.scriptsAnalyzed;
     tokensCount.textContent = foundTokens.tokens.length;
 
-    // Mostrar resultados
+    // Show results
     if (foundTokens.tokens.length > 0) {
       foundTokens.tokens.forEach(token => {
         const resultItem = createResultItem(token);
@@ -149,8 +149,8 @@ async function performScan() {
       results.innerHTML = `
         <div class="no-results">
           <div class="no-results-icon">✅</div>
-          <p>Nenhum token hardcoded encontrado!</p>
-          <p style="font-size: 10px; margin-top: 5px;">A página parece estar segura.</p>
+          <p>No hardcoded tokens found!</p>
+          <p style="font-size: 10px; margin-top: 5px;">The page appears to be secure.</p>
         </div>
       `;
     }
@@ -161,15 +161,15 @@ async function performScan() {
     results.innerHTML = `
       <div class="no-results">
         <div class="no-results-icon">❌</div>
-        <p>Erro ao escanear a página</p>
+        <p>Error scanning the page</p>
         <p style="font-size: 10px; margin-top: 5px;">${error.message}</p>
-        <p style="font-size: 9px; margin-top: 3px; color: #999;">Dica: Recarregue a página (F5) e tente novamente</p>
+        <p style="font-size: 9px; margin-top: 3px; color: #999;">Tip: Reload the page (F5) and try again</p>
       </div>
     `;
   }
 }
 
-// Importar e carregar validador
+// Import and load validator
 async function loadValidator() {
   try {
     const validatorUrl = chrome.runtime.getURL('validator.js');
@@ -177,12 +177,12 @@ async function loadValidator() {
     const code = response.text();
     return eval('(' + await code + ')');
   } catch (error) {
-    console.error('Erro ao carregar validador:', error);
+    console.error('Error loading validator:', error);
     return null;
   }
 }
 
-// Função de scan que será injetada na página
+// Scan function to be injected into the page
 async function scanForHardcodedTokens() {
   const patterns = {
     API_KEY: [
@@ -313,7 +313,7 @@ async function scanForHardcodedTokens() {
 function createResultItem(token) {
   const div = document.createElement('div');
 
-  // Adicionar classe especial para tokens válidos
+  // Add special class for valid tokens
   let itemClass = 'result-item';
   if (token.validation?.valid === true) {
     itemClass += ' result-item-critical';
@@ -323,23 +323,23 @@ function createResultItem(token) {
   const typeEmoji = getTypeEmoji(token.type);
   const typeLabel = getTypeLabel(token.type);
 
-  // Determinar status de validação
+  // Determine validation status
   let validationBadge = '';
   if (token.validation) {
     if (token.validation.valid === true) {
-      validationBadge = `<span class="validation-badge validation-valid">✅ VÁLIDO</span>`;
+      validationBadge = `<span class="validation-badge validation-valid">✅ VALID</span>`;
     } else if (token.validation.valid === false) {
-      validationBadge = `<span class="validation-badge validation-invalid">❌ Inválido</span>`;
+      validationBadge = `<span class="validation-badge validation-invalid">❌ Invalid</span>`;
     } else {
-      validationBadge = `<span class="validation-badge validation-unknown">⚠️ Não validado</span>`;
+      validationBadge = `<span class="validation-badge validation-unknown">⚠️ Not validated</span>`;
     }
   }
 
-  // Gerar ID único para o token
+  // Generate unique ID for token
   const tokenId = `token-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   token.id = token.id || tokenId;
 
-  // Verificar se já foi visualizado
+  // Check if already viewed
   const isViewed = token.viewed === true;
 
   div.innerHTML = `
@@ -348,40 +348,40 @@ function createResultItem(token) {
       <span class="result-title">${typeLabel}</span>
       <span class="result-type">${token.type}</span>
       ${validationBadge}
-      ${isViewed ? '<span class="viewed-badge">🔥 Visualizado</span>' : ''}
+      ${isViewed ? '<span class="viewed-badge">🔥 Viewed</span>' : ''}
     </div>
     ${token.validation && token.validation.valid === true ? `
       <div class="validation-warning">
-        🚨 ALERTA: Este token está ATIVO e FUNCIONAL!<br>
+        🚨 ALERT: This token is ACTIVE and FUNCTIONAL!<br>
         <strong>Status:</strong> ${escapeHtml(token.validation.status)}
-        ${token.validation.severity ? `<br><strong>Severidade:</strong> ${token.validation.severity}` : ''}
+        ${token.validation.severity ? `<br><strong>Severity:</strong> ${token.validation.severity}` : ''}
         ${token.validation.metadata ? `<br><strong>Info:</strong> ${JSON.stringify(token.validation.metadata)}` : ''}
       </div>
     ` : ''}
     ${token.validation && token.validation.status && token.validation.valid !== true ? `
       <div class="validation-info">
-        🔐 <strong>Validação:</strong> ${escapeHtml(token.validation.status)}
+        🔐 <strong>Validation:</strong> ${escapeHtml(token.validation.status)}
       </div>
     ` : ''}
     <div class="result-script">
       📄 Script: <a href="${token.scriptUrl}" target="_blank">${truncateUrl(token.scriptUrl)}</a>
     </div>
     <div class="result-token">
-      <strong>Token encontrado:</strong><br>
+      <strong>Token found:</strong><br>
       ${escapeHtml(token.value)}
     </div>
     ${token.context ? `<div class="result-token" style="margin-top: 5px; border-left-color: #667eea;">
-      <strong>Contexto:</strong><br>
+      <strong>Context:</strong><br>
       ${escapeHtml(token.context)}
     </div>` : ''}
     ${!isViewed ? `
       <button class="mark-viewed-btn" data-token-id="${token.id}">
-        👁️ Marcar como Visualizado
+        👁️ Mark as Viewed
       </button>
     ` : ''}
   `;
 
-  // Adicionar event listener ao botão de visualizado
+  // Add event listener to viewed button
   if (!isViewed) {
     const viewedBtn = div.querySelector('.mark-viewed-btn');
     if (viewedBtn) {
@@ -419,7 +419,7 @@ function getTypeEmoji(type) {
 
 function getTypeLabel(type) {
   const labels = {
-    'API_KEY': 'API Key Detectada',
+    'API_KEY': 'API Key Detected',
     'JWT': 'Token JWT',
     'AWS': 'AWS Credentials',
     'GITHUB': 'GitHub Token',
@@ -437,7 +437,7 @@ function getTypeLabel(type) {
     'TOKEN': 'Token',
     'PRIVATE_KEY': 'Private Key'
   };
-  return labels[type] || 'Credencial Suspeita';
+  return labels[type] || 'Suspicious Credential';
 }
 
 function truncateUrl(url, maxLength = 50) {
@@ -451,7 +451,7 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Criar item de resultado para bucket vulnerável
+// Create result item for vulnerable bucket
 function createBucketResultItem(bucket) {
   const div = document.createElement('div');
   div.className = 'result-item result-item-critical bucket-item';
@@ -463,38 +463,38 @@ function createBucketResultItem(bucket) {
       <span class="result-icon">${typeEmoji}</span>
       <span class="result-title">BUCKET TAKEOVER</span>
       <span class="result-type">${bucket.subtype}</span>
-      <span class="validation-badge validation-vulnerable">🚨 VULNERÁVEL</span>
+      <span class="validation-badge validation-vulnerable">🚨 VULNERABLE</span>
     </div>
     <div class="validation-warning">
-      🚨 CRÍTICO: Este bucket pode estar vulnerável a takeover!<br>
+      🚨 CRITICAL: This bucket may be vulnerable to takeover!<br>
       <strong>Status:</strong> ${escapeHtml(bucket.validation.status)}<br>
-      ${bucket.validation.recommendation ? `<strong>Recomendação:</strong> ${escapeHtml(bucket.validation.recommendation)}<br>` : ''}
-      <strong>Severidade:</strong> ${bucket.validation.severity}
+      ${bucket.validation.recommendation ? `<strong>Recommendation:</strong> ${escapeHtml(bucket.validation.recommendation)}<br>` : ''}
+      <strong>Severity:</strong> ${bucket.validation.severity}
     </div>
     <div class="result-script">
-      📄 Encontrado em: <a href="${bucket.sourceUrl}" target="_blank">${truncateUrl(bucket.sourceUrl)}</a>
+      📄 Found in: <a href="${bucket.sourceUrl}" target="_blank">${truncateUrl(bucket.sourceUrl)}</a>
     </div>
     <div class="result-token">
-      <strong>URL do Bucket:</strong><br>
+      <strong>Bucket URL:</strong><br>
       ${escapeHtml(bucket.url)}
     </div>
     ${bucket.bucketName ? `<div class="result-token" style="margin-top: 5px; border-left-color: #f5576c;">
-      <strong>Nome do Bucket:</strong><br>
+      <strong>Bucket Name:</strong><br>
       ${escapeHtml(bucket.bucketName)}
     </div>` : ''}
     <div class="result-token" style="margin-top: 5px; background: #fffbea; border-left-color: #f59e0b;">
-      <strong>⚡ Ação para Bug Bounty:</strong><br>
-      1. Documentar este finding com screenshot<br>
-      2. Verificar se é possível registrar o bucket<br>
-      3. NÃO registrar - apenas reportar<br>
-      4. Incluir no relatório de vulnerabilidade
+      <strong>⚡ Action for Bug Bounty:</strong><br>
+      1. Document this finding with screenshot<br>
+      2. Check if it's possible to register the bucket<br>
+      3. DO NOT register - just report<br>
+      4. Include in vulnerability report
     </div>
   `;
 
   return div;
 }
 
-// Emojis para tipos de buckets
+// Emojis for bucket types
 function getBucketEmoji(type) {
   const emojis = {
     'AWS_S3': '☁️',
@@ -511,17 +511,17 @@ function getBucketEmoji(type) {
   return emojis[type] || '🪣';
 }
 
-// Abrir configurações
+// Open settings
 function openSettings() {
   chrome.tabs.create({ url: chrome.runtime.getURL('settings.html') });
 }
 
-// Abrir histórico
+// Open history
 function openHistory() {
   chrome.tabs.create({ url: chrome.runtime.getURL('history.html') });
 }
 
-// Realizar Deep Scan com crawler profundo
+// Perform Deep Scan with deep crawler
 async function performDeepScan() {
   const scanBtn = document.getElementById('scanBtn');
   const deepScanBtn = document.getElementById('deepScanBtn');
@@ -530,46 +530,46 @@ async function performDeepScan() {
   const stats = document.getElementById('stats');
   const results = document.getElementById('results');
 
-  // Limpar resultados anteriores
+  // Clear previous results
   results.innerHTML = '';
   stats.style.display = 'none';
   scanBtn.style.display = 'none';
   deepScanBtn.style.display = 'none';
   loading.style.display = 'flex';
-  loadingText.textContent = 'Deep Scan em andamento... (pode demorar alguns minutos)';
+  loadingText.textContent = 'Deep Scan in progress... (may take a few minutes)';
 
   try {
-    // Obter a aba ativa
+    // Get active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (!tab || !tab.id) {
-      throw new Error('Nenhuma aba ativa encontrada');
+      throw new Error('No active tab found');
     }
 
-    // Garantir que o content script está injetado
+    // Ensure content script is injected
     try {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: ['content.js']
       });
-      console.log('✅ Content script injetado');
-      // Aguardar um pouco para o script inicializar completamente
+      console.log('✅ Content script injected');
+      // Wait a bit for script to initialize completely
       await new Promise(resolve => setTimeout(resolve, 1500));
     } catch (error) {
-      console.log('⚠️ Content script já pode estar carregado:', error.message);
+      console.log('⚠️ Content script may already be loaded:', error.message);
     }
 
-    // Enviar mensagem para content script iniciar deep scan
+    // Send message to content script to start deep scan
     const response = await chrome.tabs.sendMessage(tab.id, {
       action: 'startDeepScan',
       depth: 10
     });
 
     if (!response) {
-      throw new Error('Erro ao executar deep scan na página');
+      throw new Error('Error executing deep scan on page');
     }
 
-    // Mostrar estatísticas
+    // Show statistics
     loading.style.display = 'none';
     stats.style.display = 'block';
     scanBtn.style.display = 'block';
@@ -578,26 +578,26 @@ async function performDeepScan() {
     const scriptsCount = document.getElementById('scriptsCount');
     const tokensCount = document.getElementById('tokensCount');
 
-    // Atualizar stats
+    // Update stats
     scriptsCount.textContent = response.scriptsAnalyzed;
 
-    // Mostrar apenas tokens válidos
+    // Show only valid tokens
     const validTokens = response.validTokens || [];
-    tokensCount.textContent = `${validTokens.length} válidos de ${response.tokens.length} total`;
+    tokensCount.textContent = `${validTokens.length} valid of ${response.tokens.length} total`;
 
-    // Adicionar estatísticas extras
+    // Add extra statistics
     stats.innerHTML += `
       <div class="stat-item">
-        <span class="stat-label">Páginas Visitadas:</span>
+        <span class="stat-label">Pages Visited:</span>
         <span class="stat-value">${response.pagesVisited || 1}</span>
       </div>
       <div class="stat-item">
-        <span class="stat-label">Profundidade:</span>
+        <span class="stat-label">Depth:</span>
         <span class="stat-value">${response.depth || 10}</span>
       </div>
     `;
 
-    // Mostrar resultados (tokens válidos + buckets vulneráveis)
+    // Show results (valid tokens + vulnerable buckets)
     const vulnerableBuckets = response.vulnerableBuckets || [];
     const totalCritical = validTokens.length + vulnerableBuckets.length;
 
@@ -613,13 +613,13 @@ async function performDeepScan() {
 
       results.innerHTML = `<div class="alert-banner">${alertMessage}</div>`;
 
-      // Mostrar buckets vulneráveis primeiro (maior severidade)
+      // Show vulnerable buckets first (higher severity)
       vulnerableBuckets.forEach(bucket => {
         const bucketItem = createBucketResultItem(bucket);
         results.appendChild(bucketItem);
       });
 
-      // Depois mostrar tokens válidos
+      // Then show valid tokens
       validTokens.forEach(token => {
         const resultItem = createResultItem(token);
         results.appendChild(resultItem);
@@ -630,16 +630,16 @@ async function performDeepScan() {
       results.innerHTML = `
         <div class="no-results">
           <div class="no-results-icon">✅</div>
-          <p>${totalFound} item(s) encontrado(s), mas nenhum vulnerável!</p>
-          <p style="font-size: 10px; margin-top: 5px;">Todos foram validados e estão seguros/inativos.</p>
+          <p>${totalFound} item(s) found, but none vulnerable!</p>
+          <p style="font-size: 10px; margin-top: 5px;">All were validated and are secure/inactive.</p>
         </div>
       `;
     } else {
       results.innerHTML = `
         <div class="no-results">
           <div class="no-results-icon">✅</div>
-          <p>Nenhuma vulnerabilidade encontrada!</p>
-          <p style="font-size: 10px; margin-top: 5px;">Deep scan completo - ${response.pagesVisited} páginas analisadas.</p>
+          <p>No vulnerabilities found!</p>
+          <p style="font-size: 10px; margin-top: 5px;">Deep scan complete - ${response.pagesVisited} pages analyzed.</p>
         </div>
       `;
     }
@@ -651,55 +651,55 @@ async function performDeepScan() {
     results.innerHTML = `
       <div class="no-results">
         <div class="no-results-icon">❌</div>
-        <p>Erro ao executar deep scan</p>
+        <p>Error executing deep scan</p>
         <p style="font-size: 10px; margin-top: 5px;">${error.message}</p>
-        <p style="font-size: 9px; margin-top: 3px; color: #999;">Dica: Recarregue a página (F5) e tente novamente</p>
+        <p style="font-size: 9px; margin-top: 3px; color: #999;">Tip: Reload the page (F5) and try again</p>
       </div>
     `;
   }
 }
 
-// Marcar token como visualizado
+// Mark token as viewed
 async function markAsViewed(token, divElement) {
   try {
-    // Marcar token como visualizado
+    // Mark token as viewed
     token.viewed = true;
     token.viewedAt = new Date().toISOString();
 
-    // Salvar no histórico
+    // Save to history
     await chrome.runtime.sendMessage({
       action: 'markTokenViewed',
       tokenId: token.id,
       tokenValue: token.value
     });
 
-    // Atualizar UI
+    // Update UI
     const resultHeader = divElement.querySelector('.result-header');
 
-    // Remover botão
+    // Remove button
     const viewedBtn = divElement.querySelector('.mark-viewed-btn');
     if (viewedBtn) {
       viewedBtn.remove();
     }
 
-    // Adicionar badge de visualizado com animação
+    // Add viewed badge with animation
     const viewedBadge = document.createElement('span');
     viewedBadge.className = 'viewed-badge viewed-badge-animate';
-    viewedBadge.innerHTML = '🔥 Visualizado';
+    viewedBadge.innerHTML = '🔥 Viewed';
     resultHeader.appendChild(viewedBadge);
 
-    // Remover animação após 500ms
+    // Remove animation after 500ms
     setTimeout(() => {
       viewedBadge.classList.remove('viewed-badge-animate');
     }, 500);
 
   } catch (error) {
-    console.error('Erro ao marcar como visualizado:', error);
-    alert('Erro ao marcar token: ' + error.message);
+    console.error('Error marking as viewed:', error);
+    alert('Error marking token: ' + error.message);
   }
 }
 
-// Toggle modo automático
+// Toggle automatic mode
 async function toggleAutoMode() {
   try {
     let { settings } = await chrome.storage.local.get('settings');
@@ -720,10 +720,10 @@ async function toggleAutoMode() {
 
     await chrome.storage.local.set({ settings });
 
-    // Atualizar UI
+    // Update UI
     await loadAutoModeState();
 
-    // Feedback visual
+    // Visual feedback
     const autoModeToggle = document.getElementById('autoModeToggle');
     autoModeToggle.style.transform = 'scale(1.1)';
     setTimeout(() => {
@@ -731,7 +731,7 @@ async function toggleAutoMode() {
     }, 200);
 
   } catch (error) {
-    console.error('Erro ao alternar modo automático:', error);
-    alert('Erro ao alternar modo: ' + error.message);
+    console.error('Error toggling automatic mode:', error);
+    alert('Error toggling mode: ' + error.message);
   }
 }

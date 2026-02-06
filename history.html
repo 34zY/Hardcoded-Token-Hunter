@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Histórico - Hardcoded Token Detector</title>
+  <title>History - Hardcoded Token Detector</title>
   <link rel="stylesheet" href="popup.css">
   <style>
     body {
@@ -239,44 +239,44 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>📚 Histórico de Tokens</h1>
+      <h1>📚 Token History</h1>
       <p class="author">by <a href="https://ofjaaah.com" target="_blank">OFJAAAH</a></p>
     </div>
 
     <div class="stats-grid" id="statsGrid">
       <div class="stat-card">
         <div class="number" id="totalScans">0</div>
-        <div class="label">Scans Realizados</div>
+        <div class="label">Scans Performed</div>
       </div>
       <div class="stat-card">
         <div class="number" id="totalTokens">0</div>
-        <div class="label">Tokens Encontrados</div>
+        <div class="label">Tokens Found</div>
       </div>
       <div class="stat-card">
         <div class="number" id="uniqueSites">0</div>
-        <div class="label">Sites Únicos</div>
+        <div class="label">Unique Sites</div>
       </div>
       <div class="stat-card">
         <div class="number" id="lastScan">-</div>
-        <div class="label">Último Scan</div>
+        <div class="label">Last Scan</div>
       </div>
     </div>
 
     <div class="toolbar">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="🔍 Buscar por URL, tipo de token...">
+        <input type="text" id="searchInput" placeholder="🔍 Search by URL, token type...">
       </div>
-      <button class="btn-export" id="exportJsonBtn">📥 Exportar JSON</button>
-      <button class="btn-export" id="exportCsvBtn">📊 Exportar CSV</button>
-      <button class="btn-clear" id="clearHistoryBtn">🗑️ Limpar Histórico</button>
+      <button class="btn-export" id="exportJsonBtn">📥 Export JSON</button>
+      <button class="btn-export" id="exportCsvBtn">📊 Export CSV</button>
+      <button class="btn-clear" id="clearHistoryBtn">🗑️ Clear History</button>
     </div>
 
     <div class="history-list" id="historyList"></div>
 
     <div class="empty-state" id="emptyState" style="display: none;">
       <div class="empty-state-icon">📭</div>
-      <h2>Nenhum registro encontrado</h2>
-      <p>Comece escaneando páginas para ver o histórico aqui!</p>
+      <h2>No records found</h2>
+      <p>Start scanning pages to see history here!</p>
     </div>
   </div>
 

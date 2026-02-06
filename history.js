@@ -1,4 +1,4 @@
-// History.js - Gerenciamento de Histórico
+// History.js - History Management
 
 let historyData = [];
 
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
 });
 
-// Carregar histórico
+// Load history
 async function loadHistory() {
   try {
     const { history = [] } = await chrome.storage.local.get('history');
@@ -35,11 +35,11 @@ async function loadHistory() {
 
     renderHistory(history);
   } catch (error) {
-    console.error('Erro ao carregar histórico:', error);
+    console.error('Error loading history:', error);
   }
 }
 
-// Renderizar histórico
+// Render history
 function renderHistory(history) {
   const historyList = document.getElementById('historyList');
   historyList.innerHTML = '';
@@ -50,15 +50,15 @@ function renderHistory(history) {
   });
 }
 
-// Criar item de histórico
+// Create history item
 function createHistoryItem(entry) {
   const div = document.createElement('div');
   div.className = 'history-item';
 
   const date = new Date(entry.timestamp);
-  const formattedDate = date.toLocaleString('pt-BR');
+  const formattedDate = date.toLocaleString('en-US');
 
-  // Contar tokens por tipo
+  // Count tokens by type
   const tokensByType = {};
   entry.tokens.forEach(token => {
     tokensByType[token.type] = (tokensByType[token.type] || 0) + 1;
@@ -72,15 +72,15 @@ function createHistoryItem(entry) {
     <div class="history-header">
       <img class="favicon" src="${entry.favicon || 'icons/icon48.png'}">
       <div class="history-info">
-        <div class="history-title">${escapeHtml(entry.title || 'Sem título')}</div>
+        <div class="history-title">${escapeHtml(entry.title || 'No title')}</div>
         <a class="history-url" href="${entry.url}" target="_blank">${truncateUrl(entry.url, 80)}</a>
       </div>
       <div class="history-timestamp">${formattedDate}</div>
     </div>
 
     <div class="history-meta">
-      <span>📄 ${entry.scriptsAnalyzed} scripts analisados</span>
-      <span>🔑 ${entry.tokensCount} tokens encontrados</span>
+      <span>📄 ${entry.scriptsAnalyzed} scripts analyzed</span>
+      <span>🔑 ${entry.tokensCount} tokens found</span>
     </div>
 
     <div class="tokens-summary">
@@ -88,7 +88,7 @@ function createHistoryItem(entry) {
     </div>
 
     <button class="toggle-tokens" data-entry-id="${entry.id}">
-      👁️ Ver Tokens
+      👁️ View Tokens
     </button>
 
     <div class="tokens-list" id="tokens-${entry.id}">
@@ -98,12 +98,12 @@ function createHistoryItem(entry) {
             <span class="result-icon">${getTypeEmoji(token.type)}</span>
             <span class="result-title">${getTypeLabel(token.type)}</span>
             <span class="result-type">${token.type}</span>
-            ${token.viewed ? '<span class="viewed-badge">🔥 Visualizado</span>' : ''}
+            ${token.viewed ? '<span class="viewed-badge">🔥 Viewed</span>' : ''}
           </div>
           ${token.validation && token.validation.valid === true ? `
             <div class="validation-warning">
-              🚨 ALERTA: Token VÁLIDO e ATIVO!<br>
-              <strong>Status:</strong> ${escapeHtml(token.validation.status || 'Válido')}
+              🚨 ALERT: Token VALID and ACTIVE!<br>
+              <strong>Status:</strong> ${escapeHtml(token.validation.status || 'Valid')}
             </div>
           ` : ''}
           <div class="result-script">
@@ -115,13 +115,13 @@ function createHistoryItem(entry) {
           </div>
           ${token.context ? `
             <div class="result-token" style="margin-top: 5px; border-left-color: #667eea;">
-              <strong>Contexto:</strong><br>
+              <strong>Context:</strong><br>
               ${escapeHtml(token.context)}
             </div>
           ` : ''}
           ${token.viewed && token.viewedAt ? `
             <div style="margin-top: 8px; font-size: 10px; color: #666; font-style: italic;">
-              🔥 Visualizado em: ${new Date(token.viewedAt).toLocaleString('pt-BR')}
+              🔥 Viewed on: ${new Date(token.viewedAt).toLocaleString('en-US')}
             </div>
           ` : ''}
         </div>
@@ -129,7 +129,7 @@ function createHistoryItem(entry) {
     </div>
   `;
 
-  // Adicionar event listener ao botão toggle
+  // Add event listener to toggle button
   const toggleButton = div.querySelector('.toggle-tokens');
   toggleButton.addEventListener('click', function() {
     toggleTokens(entry.id, this);
@@ -144,13 +144,13 @@ function toggleTokens(entryId, button) {
   tokensList.classList.toggle('expanded');
 
   if (tokensList.classList.contains('expanded')) {
-    button.textContent = '🔼 Ocultar Tokens';
+    button.textContent = '🔼 Hide Tokens';
   } else {
-    button.textContent = '👁️ Ver Tokens';
+    button.textContent = '👁️ View Tokens';
   }
 }
 
-// Carregar estatísticas
+// Load statistics
 async function loadStats() {
   try {
     const response = await chrome.runtime.sendMessage({ action: 'getStats' });
@@ -164,15 +164,15 @@ async function loadStats() {
 
       if (stats.lastScan) {
         const date = new Date(stats.lastScan);
-        document.getElementById('lastScan').textContent = date.toLocaleDateString('pt-BR');
+        document.getElementById('lastScan').textContent = date.toLocaleDateString('en-US');
       }
     }
   } catch (error) {
-    console.error('Erro ao carregar estatísticas:', error);
+    console.error('Error loading statistics:', error);
   }
 }
 
-// Filtrar histórico
+// Filter history
 function filterHistory() {
   const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
@@ -195,7 +195,7 @@ function filterHistory() {
   renderHistory(filtered);
 }
 
-// Exportar histórico como JSON
+// Export history as JSON
 async function exportHistory() {
   try {
     const response = await chrome.runtime.sendMessage({ action: 'exportHistory' });
@@ -213,15 +213,15 @@ async function exportHistory() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      alert('✅ Histórico exportado com sucesso!');
+      alert('✅ History exported successfully!');
     }
   } catch (error) {
-    console.error('Erro ao exportar:', error);
-    alert('❌ Erro ao exportar histórico: ' + error.message);
+    console.error('Error exporting:', error);
+    alert('❌ Error exporting history: ' + error.message);
   }
 }
 
-// Exportar histórico como CSV
+// Export history as CSV
 async function exportCSV() {
   try {
     const response = await chrome.runtime.sendMessage({ action: 'exportHistory' });
@@ -249,17 +249,17 @@ async function exportCSV() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      alert('✅ Histórico exportado como CSV com sucesso!');
+      alert('✅ History exported as CSV successfully!');
     }
   } catch (error) {
-    console.error('Erro ao exportar CSV:', error);
-    alert('❌ Erro ao exportar CSV: ' + error.message);
+    console.error('Error exporting CSV:', error);
+    alert('❌ Error exporting CSV: ' + error.message);
   }
 }
 
-// Limpar histórico
+// Clear history
 async function clearHistory() {
-  if (!confirm('🗑️ Tem certeza que deseja limpar todo o histórico? Esta ação não pode ser desfeita.')) {
+  if (!confirm('🗑️ Are you sure you want to clear all history? This action cannot be undone.')) {
     return;
   }
 
@@ -277,15 +277,15 @@ async function clearHistory() {
       document.getElementById('uniqueSites').textContent = '0';
       document.getElementById('lastScan').textContent = '-';
 
-      alert('✅ Histórico limpo com sucesso!');
+      alert('✅ History cleared successfully!');
     }
   } catch (error) {
-    console.error('Erro ao limpar histórico:', error);
-    alert('❌ Erro ao limpar histórico: ' + error.message);
+    console.error('Error clearing history:', error);
+    alert('❌ Error clearing history: ' + error.message);
   }
 }
 
-// Funções auxiliares
+// Helper functions
 function getTypeEmoji(type) {
   const emojis = {
     'API_KEY': '🔑',
@@ -323,7 +323,7 @@ function getTypeLabel(type) {
     'TOKEN': 'Token',
     'PRIVATE_KEY': 'Private Key'
   };
-  return labels[type] || 'Credencial';
+  return labels[type] || 'Credential';
 }
 
 function truncateUrl(url, maxLength) {
