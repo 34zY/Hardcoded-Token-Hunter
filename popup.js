@@ -604,11 +604,11 @@ async function performDeepScan() {
     if (totalCritical > 0) {
       let alertMessage = '';
       if (validTokens.length > 0 && vulnerableBuckets.length > 0) {
-        alertMessage = `⚠️ ${validTokens.length} token(s) VÁLIDO(S) + ${vulnerableBuckets.length} BUCKET(S) VULNERÁVEL(IS)!`;
+        alertMessage = `⚠️ ${validTokens.length} token(s) VALID(S) + ${vulnerableBuckets.length} BUCKET(S) VULNERABLE!`;
       } else if (validTokens.length > 0) {
-        alertMessage = `⚠️ ${validTokens.length} token(s) VÁLIDO(S) encontrado(s)!`;
+        alertMessage = `⚠️ ${validTokens.length} VALID token(s) found!`;
       } else {
-        alertMessage = `🪣 ${vulnerableBuckets.length} BUCKET(S) VULNERÁVEL(IS) A TAKEOVER!`;
+        alertMessage = `🪣 ${vulnerableBuckets.length} BUCKET(S) VULNERABLE A TAKEOVER!`;
       }
 
       results.innerHTML = `<div class="alert-banner">${alertMessage}</div>`;

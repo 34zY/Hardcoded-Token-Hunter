@@ -411,13 +411,13 @@ async function sendToDiscord(foundTokens, tab, webhookUrl) {
       if (token.validation) {
         if (token.validation.valid === true) {
           validationIcon = '✅';
-          validationStatus = `**VÁLIDO**: ${token.validation.status}`;
+          validationStatus = `**VALID**: ${token.validation.status}`;
           if (token.validation.severity) {
             validationStatus += ` (${token.validation.severity})`;
           }
         } else if (token.validation.valid === false) {
           validationIcon = '❌';
-          validationStatus = `Inválido: ${token.validation.status}`;
+          validationStatus = `Invalid: ${token.validation.status}`;
         } else {
           validationIcon = '⚠️';
           validationStatus = token.validation.status || 'Não foi possível validar';
@@ -659,7 +659,7 @@ async function markTokenAsViewed(tokenId, tokenValue) {
     const { history = [] } = await chrome.storage.local.get('history');
     let found = false;
 
-    // Procurar e atualizar o token em todas as entradas do histórico
+    // Search and update the token in all history entries
     for (const entry of history) {
       for (const token of entry.tokens) {
         if ((token.id && token.id === tokenId) || token.value === tokenValue) {
@@ -672,7 +672,7 @@ async function markTokenAsViewed(tokenId, tokenValue) {
 
     if (found) {
       await chrome.storage.local.set({ history });
-      console.log('💾 Token marcado como visualizado no histórico');
+      console.log('💾 Token marked as viewed in history');
       return { success: true, message: 'Token marcado como visualizado' };
     } else {
       console.warn('⚠️ Token not found in history');

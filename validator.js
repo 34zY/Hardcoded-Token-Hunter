@@ -226,7 +226,7 @@ const TOKEN_VALIDATORS = {
           };
 
         } catch (decodeError) {
-          return { valid: false, status: 'Formato de JWT Supabase inválido' };
+          return { valid: false, status: 'Invalid Supabase JWT format' };
         }
       }
 
@@ -267,7 +267,7 @@ const TOKEN_VALIDATORS = {
           metadata: { user: data.user, team: data.team }
         };
       } else {
-        return { valid: false, status: data.error || 'Token inválido' };
+        return { valid: false, status: data.error || 'Invalid token' };
       }
     } catch (error) {
       return { valid: null, status: 'Validation error: ' + error.message };
@@ -287,7 +287,7 @@ const TOKEN_VALIDATORS = {
       if (response.status === 200) {
         return {
           valid: true,
-          status: 'Token Stripe válido (acesso à conta)',
+          status: 'Valid Stripe token (account access)',
           severity: 'CRITICAL'
         };
       } else if (response.status === 401) {
@@ -335,7 +335,7 @@ const TOKEN_VALIDATORS = {
     try {
       const parts = token.split('.');
       if (parts.length !== 3) {
-        return { valid: false, status: 'Formato JWT inválido' };
+        return { valid: false, status: 'Invalid JWT format' };
       }
 
       const payload = JSON.parse(atob(parts[1]));
@@ -345,7 +345,7 @@ const TOKEN_VALIDATORS = {
         if (payload.exp > now) {
           return {
             valid: true,
-            status: 'JWT válido e não expirado',
+            status: 'Valid and not expired JWT',
             severity: 'MEDIUM',
             metadata: {
               expires: new Date(payload.exp * 1000).toISOString(),

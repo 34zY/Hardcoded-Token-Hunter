@@ -52,7 +52,7 @@ class DeepCrawler {
       await this.sleep(100);
     }
 
-    console.log(`✅ Crawler completo: ${allScripts.length} scripts encontrados em ${this.visitedUrls.size} páginas`);
+    console.log(`✅ Crawler completo: ${allScripts.length} scripts found em ${this.visitedUrls.size} páginas`);
     return allScripts;
   }
 

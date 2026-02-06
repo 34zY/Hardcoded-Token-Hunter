@@ -757,7 +757,7 @@ function isSameDomain(scriptUrl, currentHostname) {
   }
 }
 
-// Verificar configurações e iniciar scan automático
+// Check settings and start automatic scan
 async function initAutoScan() {
   try {
     const { settings } = await chrome.storage.local.get('settings');
@@ -824,7 +824,7 @@ async function scanForTokens(surgical = true) {
 
     // Obter todos os scripts da página
     const scripts = Array.from(document.scripts);
-    console.log(`🔍 Encontrados ${scripts.length} scripts na página`);
+    console.log(`🔍 Found ${scripts.length} scripts na página`);
 
     // Coletar conteúdo dos scripts de forma não-bloqueante
     const scriptsToAnalyze = [];
@@ -1180,21 +1180,21 @@ async function deepScanForTokens(maxDepth = 50) {
     console.log(`✅ Deep Scan complete:`);
     console.log(`   - Páginas visitadas: ${foundTokens.pagesVisited}`);
     console.log(`   - Scripts analisados: ${foundTokens.scriptsAnalyzed}`);
-    console.log(`   - Tokens encontrados: ${foundTokens.tokens.length}`);
-    console.log(`   - Buckets encontrados: ${foundTokens.buckets.length}`);
+    console.log(`   - Tokens found: ${foundTokens.tokens.length}`);
+    console.log(`   - Buckets found: ${foundTokens.buckets.length}`);
     console.log(`   - Bug Bounty Credentials: ${foundTokens.bugbountyCredentials.length}`);
 
-    // Combinar tokens padrão com bug bounty credentials
+    // Combine standard tokens with bug bounty credentials
     const allCredentials = [...foundTokens.tokens, ...foundTokens.bugbountyCredentials];
 
-    // Validar TODOS os tokens encontrados
+    // Validate ALL found tokens
     if (allCredentials.length > 0 && validatorModule) {
-      console.log('🔐 Validando todos os tokens encontrados...');
+      console.log('🔐 Validating all found tokens...');
       const validatedCredentials = await validateAllTokens(allCredentials);
 
-      // Filtrar apenas tokens válidos
+      // Filtrar apenas valid tokens
       const validTokens = validatedCredentials.filter(t => t.validation?.valid === true);
-      console.log(`✅ Validação completa: ${validTokens.length} tokens válidos de ${allCredentials.length} total`);
+      console.log(`✅ Validation complete: ${validTokens.length} valid tokens de ${allCredentials.length} total`);
 
       foundTokens.tokens = validatedCredentials;
       foundTokens.validTokens = validTokens;
@@ -1306,7 +1306,7 @@ async function validateAllTokens(tokens) {
 
         if (validation.valid === true) {
           validCount++;
-          console.log(`⚠️ TOKEN VÁLIDO [${validatedTokens.length}/${tokens.length}]: ${token.type}`);
+          console.log(`⚠️ TOKEN VALID [${validatedTokens.length}/${tokens.length}]: ${token.type}`);
         } else if (validation.valid === false) {
           invalidCount++;
         }
@@ -1324,7 +1324,7 @@ async function validateAllTokens(tokens) {
     }
 
     // Progress log
-    console.log(`📊 Progresso: ${validatedTokens.length}/${tokens.length} (${validCount} válidos, ${invalidCount} inválidos)`);
+    console.log(`📊 Progresso: ${validatedTokens.length}/${tokens.length} (${validCount} valid, ${invalidCount} invalid)`);
 
     // Delay maior entre batches
     if (i + BATCH_SIZE < tokens.length) {
@@ -1332,7 +1332,7 @@ async function validateAllTokens(tokens) {
     }
   }
 
-  console.log(`✅ Validação completa: ${validCount} válidos | ${invalidCount} inválidos | ${tokens.length - validCount - invalidCount} não testados`);
+  console.log(`✅ Validation complete: ${validCount} valid | ${invalidCount} invalid | ${tokens.length - validCount - invalidCount} not tested`);
 
   return validatedTokens;
 }
@@ -1431,29 +1431,29 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'startManualScan') {
     // Scan básico (página atual)
     scanForTokens().then(async results => {
-      // Validar tokens se encontrados
+      // Validate tokens if found
       if (results.tokens.length > 0) {
         console.log('🔐 Validando tokens do scan manual...');
         results.tokens = await validateAllTokens(results.tokens);
 
-        // Filtrar apenas válidos
+        // Filtrar apenas valid
         const validTokens = results.tokens.filter(t => t.validation?.valid === true);
         results.validTokens = validTokens;
 
         if (validTokens.length > 0) {
-          console.log(`⚠️ ALERTA: ${validTokens.length} token(s) válido(s) encontrado(s)!`);
+          console.log(`⚠️ ALERTA: ${validTokens.length} valid token(s) found!`);
         }
       }
 
       sendResponse(results);
 
-      // Enviar apenas tokens VÁLIDOS para background
+      // Enviar apenas tokens VALIDS para background
       if (results.validTokens && results.validTokens.length > 0) {
         chrome.runtime.sendMessage({
           action: 'manualScan',
           data: {
             ...results,
-            tokens: results.validTokens // Enviar apenas válidos
+            tokens: results.validTokens // Enviar apenas valid
           }
         });
       }
@@ -1469,13 +1469,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     deepScanForTokens(depth).then(results => {
       sendResponse(results);
 
-      // Enviar apenas tokens VÁLIDOS para background
+      // Enviar apenas tokens VALIDS para background
       if (results.validTokens && results.validTokens.length > 0) {
         chrome.runtime.sendMessage({
           action: 'deepScan',
           data: {
             ...results,
-            tokens: results.validTokens // Enviar apenas válidos
+            tokens: results.validTokens // Enviar apenas valid
           }
         });
       }
