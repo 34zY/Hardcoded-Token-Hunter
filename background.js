@@ -404,7 +404,7 @@ async function sendToDiscord(foundTokens, tab, webhookUrl) {
       const tokenValue = truncateText(token.value, 100);
       const scriptUrl = truncateText(token.scriptUrl, 200);
 
-      // Determinar status de validação
+      // Determine validation status
       let validationIcon = '⚠️';
       let validationStatus = 'Não validado';
 
@@ -435,7 +435,7 @@ async function sendToDiscord(foundTokens, tab, webhookUrl) {
     if (foundTokens.tokens.length > 10) {
       embed.fields.push({
         name: '⚠️ Aviso',
-        value: `Mais ${foundTokens.tokens.length - 10} token(s) encontrado(s). Veja o histórico completo na extensão.`,
+        value: `Plus ${foundTokens.tokens.length - 10} token(s) found. See complete history in the extension.`,
         inline: false
       });
     }
@@ -464,7 +464,7 @@ async function sendToDiscord(foundTokens, tab, webhookUrl) {
   }
 }
 
-// Funções auxiliares
+// Helper functions
 function truncateText(text, maxLength) {
   if (!text) return '';
   if (text.length <= maxLength) return text;
@@ -521,10 +521,10 @@ async function initializeExtensionState() {
   }
 }
 
-// Chamar inicialização com delay para garantir que onInstalled termine
+// Call initialization with delay to ensure onInstalled completes
 setTimeout(initializeExtensionState, 100);
 
-// Listener para mudanças nas configurações
+// Listener for settings changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'local' && changes.settings && changes.settings.newValue) {
     const newSettings = changes.settings.newValue;
@@ -535,7 +535,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
       chrome.action.setBadgeText({ text: '' });
     }
 
-    // Atualizar configuração de proxy
+    // Update proxy configuration
     const oldSettings = changes.settings.oldValue || {};
     if (newSettings.proxyEnabled !== oldSettings.proxyEnabled ||
         newSettings.proxyHost !== oldSettings.proxyHost ||
@@ -597,7 +597,7 @@ async function configureProxy(settings) {
   }
 }
 
-// Removido: inicialização movida para initializeExtensionState()
+// Removido: initialization moved to initializeExtensionState()
 // Removido: listener duplicado mesclado com o principal
 
 // Export history
@@ -675,8 +675,8 @@ async function markTokenAsViewed(tokenId, tokenValue) {
       console.log('💾 Token marcado como visualizado no histórico');
       return { success: true, message: 'Token marcado como visualizado' };
     } else {
-      console.warn('⚠️ Token não encontrado no histórico');
-      return { success: false, message: 'Token não encontrado' };
+      console.warn('⚠️ Token not found in history');
+      return { success: false, message: 'Token not found' };
     }
   } catch (error) {
     console.error('❌ Erro ao marcar token como visualizado:', error);
@@ -753,7 +753,7 @@ async function exportForPentest() {
   }
 }
 
-// Exportar template Nuclei para endpoints encontrados
+// Export Nuclei template for found endpoints
 async function exportNucleiTemplate() {
   try {
     const { history = [] } = await chrome.storage.local.get('history');

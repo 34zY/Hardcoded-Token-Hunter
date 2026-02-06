@@ -1,7 +1,7 @@
-// Web Worker para análise de scripts sem travar o navegador
+// Web Worker for script analysis without freezing the browser
 // Processa tokens em background thread
 
-// Padrões de detecção de tokens (copiado do content.js)
+// Token detection patterns (copied from content.js)
 const TOKEN_PATTERNS = {
   API_KEY: [
     /['"](api[_-]?key|apikey)['"]\s*[:=]\s*['"]([A-Za-z0-9_\-]{24,})['"]/gi,
@@ -66,19 +66,19 @@ const TOKEN_PATTERNS = {
   ]
 };
 
-// Verificar se é um falso positivo
+// Check if it's a false positive
 function isFalsePositive(value, context) {
-  // Verificar se é muito curto ou vazio
+  // Check if it's too short or empty
   if (value.length < 12 || /^[0]{8,}$/.test(value) || /^[x]{8,}$/i.test(value)) {
     return true;
   }
 
-  // Verificar se contém apenas letras minúsculas e underscores
+  // Check if it contains only lowercase letters and underscores
   if (/^[a-z_]+$/.test(value)) {
     return true;
   }
 
-  // Verificar padrões de feature flags
+  // Check feature flag patterns
   if (/^[a-z]+(_[a-z0-9]+){1,5}$/.test(value)) {
     return true;
   }
@@ -120,7 +120,7 @@ function isFalsePositive(value, context) {
     }
   }
 
-  // Verificar se não contém caracteres especiais ou números
+  // Check if it doesn't contain special characters or numbers
   if (!/[A-Z0-9\-_\.\/+=]/.test(value) && value.length < 40) {
     return true;
   }
@@ -136,7 +136,7 @@ function isFalsePositive(value, context) {
   return false;
 }
 
-// Calcular linha e coluna a partir do índice
+// Calculate line and column from index
 function getLineAndColumn(content, index) {
   const lines = content.substring(0, index).split('\n');
   return {
@@ -145,7 +145,7 @@ function getLineAndColumn(content, index) {
   };
 }
 
-// Analisar script em busca de tokens (versão worker)
+// Analyze script for tokens (worker version)
 function analyzeScript(content, scriptUrl) {
   const foundTokens = [];
 
@@ -173,7 +173,7 @@ function analyzeScript(content, scriptUrl) {
         const isDuplicate = foundTokens.some(t => t.value === value);
 
         if (!isDuplicate && value.length > 10) {
-          // Calcular localização precisa
+          // Calculate precise location
           const location = getLineAndColumn(content, matchIndex);
 
           foundTokens.push({

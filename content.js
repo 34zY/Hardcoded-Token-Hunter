@@ -56,7 +56,7 @@ async function ensureModulesLoaded() {
                   document.head.removeChild(script);
                   resolve();
                 } else {
-                  reject(new Error('DeepCrawler não encontrado no window'));
+                  reject(new Error('DeepCrawler not found in window'));
                 }
               }, 100);
             };
@@ -68,7 +68,7 @@ async function ensureModulesLoaded() {
         if (DeepCrawler) {
           console.log('✅ Deep Crawler carregado');
         } else {
-          console.warn('⚠️ Deep Crawler não encontrado');
+          console.warn('⚠️ Deep Crawler not found');
         }
       } catch (error) {
         console.warn('⚠️ Erro ao carregar Deep Crawler:', error.message);
@@ -96,7 +96,7 @@ async function ensureModulesLoaded() {
                   document.head.removeChild(script);
                   resolve();
                 } else {
-                  reject(new Error('BucketTakeoverDetector não encontrado no window'));
+                  reject(new Error('BucketTakeoverDetector not found in window'));
                 }
               }, 100);
             };
@@ -108,7 +108,7 @@ async function ensureModulesLoaded() {
         if (BucketTakeoverDetector) {
           console.log('✅ Bucket Takeover Detector carregado');
         } else {
-          console.warn('⚠️ Bucket Takeover Detector não encontrado');
+          console.warn('⚠️ Bucket Takeover Detector not found');
         }
       } catch (error) {
         console.warn('⚠️ Erro ao carregar Bucket Takeover Detector:', error.message);
@@ -347,7 +347,7 @@ function isFalsePositive(value, context) {
     return true;
   }
 
-  // Verificar se parece com nome de feature/config (padrão comum: palavra_palavra_numero)
+  // Check if it looks like a feature/config name (common pattern: word_word_number)
   if (/^[a-z]+(_[a-z0-9]+){1,5}$/.test(value)) {
     return true;
   }
@@ -399,7 +399,7 @@ function isFalsePositive(value, context) {
     return true;
   }
 
-  // Verificar padrão de camelCase ou snake_case sem números (geralmente são nomes de variáveis)
+  // Check camelCase or snake_case pattern without numbers (usually variable names)
   if (/^[a-z][a-zA-Z]*$/.test(value) || /^[a-z]+(_[a-z]+)+$/.test(value)) {
     return true;
   }
@@ -763,7 +763,7 @@ async function initAutoScan() {
     const { settings } = await chrome.storage.local.get('settings');
 
     // Verificar se deve pular este domínio (filtro de redes sociais)
-    const skipSocialMedia = settings?.skipSocialMediaScan !== false; // Ativo por padrão
+    const skipSocialMedia = settings?.skipSocialMediaScan !== false; // Active by default
     if (skipSocialMedia && shouldSkipDomain(window.location.href)) {
       console.log('⏭️ Scan pulado: domínio está na blacklist de redes sociais/tracking');
       return;
@@ -778,7 +778,7 @@ async function initAutoScan() {
         const results = await scanForTokens(true); // true = modo cirúrgico
 
         if (results.tokens.length > 0) {
-          console.log(`✅ Auto-scan completo: ${results.tokens.length} token(s) encontrado(s)`);
+          console.log(`✅ Auto-scan completo: ${results.tokens.length} token(s) found`);
 
           // DESABILITADO: Validação automática pode travar o site
           // A validação só acontece no SCAN MANUAL
@@ -790,7 +790,7 @@ async function initAutoScan() {
             data: results
           });
         } else {
-          console.log('✅ Auto-scan completo: nenhum token encontrado');
+          console.log('✅ Auto-scan completo: no tokens found');
         }
       }, settings.scanDelay || 3000);
     }
@@ -812,7 +812,7 @@ async function scanForTokens(surgical = true) {
   try {
     // Verificar se deve pular este domínio (scan manual também respeita o filtro se configurado)
     const { settings } = await chrome.storage.local.get('settings');
-    const skipSocialMedia = settings?.skipSocialMediaScan !== false; // Ativo por padrão
+    const skipSocialMedia = settings?.skipSocialMediaScan !== false; // Active by default
 
     if (skipSocialMedia && shouldSkipDomain(window.location.href)) {
       console.log('⏭️ Scan pulado: domínio está na blacklist de redes sociais/tracking');
@@ -1141,13 +1141,13 @@ async function deepScanForTokens(maxDepth = 50) {
     // Iniciar crawling
     const allScripts = await crawler.crawl();
 
-    console.log(`📊 Scripts encontrados: ${allScripts.length}`);
+    console.log(`📊 Scripts found: ${allScripts.length}`);
 
-    // Analisar cada script encontrado
+    // Analyze each found script
     for (const scriptData of allScripts) {
       foundTokens.scriptsAnalyzed++;
 
-      // Análise de tokens padrão
+      // Standard token analysis
       analyzeScript(scriptData.content, scriptData.url, foundTokens);
 
       // Análise de buckets e bug bounty credentials

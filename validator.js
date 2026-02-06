@@ -1,12 +1,12 @@
 // Token Validator - OFJAAAH Hardcoded Token Detector
-// Valida tokens críticos para alertas de segurança em ambientes autorizados
+// Validates critical tokens for security alerts in authorized environments
 
 const TOKEN_VALIDATORS = {
 
   // Firebase API Key Validation
   FIREBASE: async (token) => {
     try {
-      // Tentar fazer uma requisição simples à API do Firebase
+      // Try to make a simple request to Firebase API
       const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -15,12 +15,12 @@ const TOKEN_VALIDATORS = {
 
       const data = await response.json();
 
-      // Se retornar erro específico de API key inválida
+      // If it returns a specific invalid API key error
       if (data.error && data.error.message === 'API key not valid') {
         return { valid: false, status: 'Token inválido ou expirado' };
       }
 
-      // Se retornar qualquer outra resposta, a API key é válida
+      // If it returns any other response, the API key is valid
       if (response.status === 400 && data.error && data.error.message.includes('MISSING')) {
         return { valid: true, status: 'Token válido e ativo', severity: 'CRITICAL' };
       }
@@ -99,7 +99,7 @@ const TOKEN_VALIDATORS = {
       if (userResponse.status === 200) {
         const userData = await userResponse.json();
 
-        // Testar permissões adicionais
+        // Test additional permissions
         const teamsResponse = await fetch('https://api.vercel.com/v2/teams', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -136,7 +136,7 @@ const TOKEN_VALIDATORS = {
   // Supabase Token Validation (Expandida - Bug Bounty)
   SUPABASE: async (token, projectUrl = null) => {
     try {
-      // Supabase API keys são JWTs
+      // Supabase API keys are JWTs
       if (token.startsWith('eyJ') && token.includes('.')) {
         // Decodificar JWT
         try {
@@ -148,7 +148,7 @@ const TOKEN_VALIDATORS = {
           const isServiceRole = role === 'service_role';
           const isAnonKey = role === 'anon';
 
-          // Verificar expiração
+          // Check expiration
           if (payload.exp && payload.exp < now) {
             return { valid: false, status: 'JWT Supabase expirado' };
           }
@@ -166,7 +166,7 @@ const TOKEN_VALIDATORS = {
                 }
               });
 
-              // Testar permissões de escrita (apenas para service_role)
+              // Test write permissions (only for service_role)
               let writeAccess = false;
               if (isServiceRole) {
                 try {
@@ -199,7 +199,7 @@ const TOKEN_VALIDATORS = {
               };
 
             } catch (fetchError) {
-              // Key é válida mas não conseguimos testar acesso
+              // Key is valid but we couldn't test access
               return {
                 valid: true,
                 status: `SUPABASE ${role.toUpperCase()} Key válida (formato JWT correto)`,
@@ -238,7 +238,7 @@ const TOKEN_VALIDATORS = {
 
   // AWS Credentials Validation
   AWS: async (token) => {
-    // AWS requer access key ID + secret, não podemos validar apenas com um
+    // AWS requires access key ID + secret, we can't validate with just one
     return {
       valid: null,
       status: 'Validação AWS requer Access Key ID + Secret Access Key',
